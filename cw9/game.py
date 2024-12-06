@@ -3,14 +3,12 @@ import random
 import sys
 import time
 
-pygame.init()
-
 WIDTH, HEIGHT = 1000, 600
-
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GRAY = (150, 150, 150)
 
+pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Falling Snow Game")
 clock = pygame.time.Clock()

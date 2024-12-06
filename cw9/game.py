@@ -6,7 +6,7 @@ import time
 WIDTH, HEIGHT = 1000, 600
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-GRAY = (150, 150, 150)
+GRAY = (148, 148, 148)
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))

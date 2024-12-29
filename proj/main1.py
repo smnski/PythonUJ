@@ -26,6 +26,19 @@ class WelcomeScreen:
         ROWS, COLS = 10, 10
         SQUARE_SIZE = WIDTH // COLS
 
+        AIRCRAFT_CARRIER_LEN = 5
+        BATTLESHIP_LEN = 4
+        DESTROYER_LEN = 3
+        PATROL_BOAT_LEN = 2
+
+        remaining_boats = {
+            "aircraft_carrier": 1,
+            "battleship:": 2,
+            "destroyer": 4,
+            "patrol_boat": 3,
+            "total": 10
+        }
+
         grid_screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("Place Ships")
 
@@ -39,8 +52,7 @@ class WelcomeScreen:
                     x, y = event.pos
                     row, col = y // SQUARE_SIZE, x // SQUARE_SIZE
 
-                    if 0 <= row < ROWS and 0 <= col < COLS:
-                        board[row][col] = 1 if board[row][col] == 0 else 0
+                    # Placing logic here
 
             grid_screen.fill(WHITE)
 

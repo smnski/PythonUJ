@@ -23,10 +23,12 @@ class WelcomeScreen:
         self.font = pygame.font.Font(None, 36)
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
 
-    def place_ships_yourself(self):
-        WIDTH, HEIGHT = 500, 550
+    def placeShipsYourself(self):
+        GRID_WIDTH, GRID_HEIGHT = 500, 500
+        TEXT_HEIGHT = 50
+        DISPLAY_HEIGHT = GRID_HEIGHT + TEXT_HEIGHT
         ROWS, COLS = 10, 10
-        SQUARE_SIZE = WIDTH // COLS
+        SQUARE_SIZE = GRID_WIDTH // COLS
 
         ships = {
             "carrier": 5,
@@ -41,7 +43,7 @@ class WelcomeScreen:
         horizontal = True
         preview_pos = None
 
-        def can_place_ship(board, row, col, length, horizontal):
+        def canPlaceShip(board, row, col, length, horizontal):
             if horizontal:
                 if col + length > COLS:
                     return False
@@ -51,7 +53,7 @@ class WelcomeScreen:
                     return False
                 return all(board[row + i][col] == 0 for i in range(length))
 
-        def place_ship(board, row, col, length, horizontal):
+        def placeShip(board, row, col, length, horizontal):
             if horizontal:
                 for i in range(length):
                     board[row][col + i] = 1
@@ -59,26 +61,30 @@ class WelcomeScreen:
                 for i in range(length):
                     board[row + i][col] = 1
 
-        grid_screen = pygame.display.set_mode((WIDTH, HEIGHT))
+        grid_screen = pygame.display.set_mode((GRID_WIDTH, DISPLAY_HEIGHT))
         pygame.display.set_caption("Place Ships")
 
         running = True
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    running = False
+                    pygame.quit()
+                    sys.exit()
 
                 if event.type == pygame.MOUSEBUTTONDOWN and remaining_ships:
                     x, y = event.pos
                     row, col = y // SQUARE_SIZE, x // SQUARE_SIZE
-                    ship_name, ship_length = remaining_ships[current_ship_index]
+                    if y < GRID_HEIGHT:  # Ignore clicks in the text area
+                        ship_name, ship_length = remaining_ships[current_ship_index]
+                        if canPlaceShip(board, row, col, ship_length, horizontal):
+                            placeShip(board, row, col, ship_length, horizontal)
+                            current_ship_index += 1
 
-                    if can_place_ship(board, row, col, ship_length, horizontal):
-                        place_ship(board, row, col, ship_length, horizontal)
-                        current_ship_index += 1
-
-                        if current_ship_index >= len(remaining_ships):
-                            remaining_ships.clear()
+                            if current_ship_index >= len(remaining_ships):
+                                remaining_ships.clear()
+                                gameplay = Gameplay()
+                                gameplay.run()
+                                return
 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_r:
@@ -91,6 +97,7 @@ class WelcomeScreen:
 
             grid_screen.fill(WHITE)
 
+            # Draw the grid
             for row in range(ROWS):
                 for col in range(COLS):
                     color = BLUE if board[row][col] == 1 else GRAY
@@ -106,10 +113,11 @@ class WelcomeScreen:
                         1
                     )
 
+            # Draw the preview
             if remaining_ships and preview_pos:
                 ship_name, ship_length = remaining_ships[current_ship_index]
                 row, col = preview_pos
-                valid = can_place_ship(board, row, col, ship_length, horizontal)
+                valid = canPlaceShip(board, row, col, ship_length, horizontal)
                 highlight_color = GREEN if valid else RED
 
                 for i in range(ship_length):
@@ -120,13 +128,14 @@ class WelcomeScreen:
                     if (0 <= col + i < COLS and 0 <= row < ROWS) or (0 <= col < COLS and 0 <= row + i < ROWS):
                         pygame.draw.rect(grid_screen, highlight_color, rect)
 
+            # Draw text
             if remaining_ships:
                 ship_name, ship_length = remaining_ships[current_ship_index]
                 placing_text = self.font.render(f"Placing: {ship_name} ({ship_length})", True, BLACK)
                 rotate_text = self.font.render("Press R to rotate", True, BLACK)
 
-                grid_screen.blit(placing_text, (WIDTH // 2 - placing_text.get_width() // 2, HEIGHT - 40))
-                grid_screen.blit(rotate_text, (WIDTH // 2 - rotate_text.get_width() // 2, HEIGHT - 20))
+                grid_screen.blit(placing_text, (GRID_WIDTH // 2 - placing_text.get_width() // 2, GRID_HEIGHT + 5))
+                grid_screen.blit(rotate_text, (GRID_WIDTH // 2 - rotate_text.get_width() // 2, GRID_HEIGHT + 25))
 
             pygame.display.flip()
 
@@ -146,14 +155,16 @@ class WelcomeScreen:
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    running = False
+                    pygame.quit()
+                    sys.exit()
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     x, y = event.pos
 
                     if (self.WIDTH // 2 - self.BUTTON_WIDTH // 2 <= x <= self.WIDTH // 2 + self.BUTTON_WIDTH // 2 and
                         self.HEIGHT // 3 - self.BUTTON_HEIGHT // 2 <= y <= self.HEIGHT // 3 + self.BUTTON_HEIGHT // 2):
-                        self.place_ships_yourself()
+                        self.placeShipsYourself()
+                        return
 
                     if (self.WIDTH // 2 - self.BUTTON_WIDTH // 2 <= x <= self.WIDTH // 2 + self.BUTTON_WIDTH // 2 and
                         2 * self.HEIGHT // 3 - self.BUTTON_HEIGHT // 2 <= y <= 2 * self.HEIGHT // 3 + self.BUTTON_HEIGHT // 2):
@@ -169,6 +180,30 @@ class WelcomeScreen:
                             2 * self.HEIGHT // 3 - self.BUTTON_HEIGHT // 2,
                             GRAY)
             pygame.display.flip()
+
+class Gameplay:
+    WIDTH = 800
+    HEIGHT = 600
+
+    def __init__(self):
+        self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+        pygame.display.set_caption("Gameplay Placeholder")
+        self.font = pygame.font.Font(None, 74)
+
+    def run(self):
+        running = True
+
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+            self.screen.fill(WHITE)
+            text = self.font.render("Gameplay Screen", True, BLACK)
+            self.screen.blit(text, (self.WIDTH / 2 - text.get_width() // 2, self.HEIGHT / 2 - text.get_height() // 2))
+            pygame.display.flip()
+
 
 if __name__ == "__main__":
     welcome_screen = WelcomeScreen()

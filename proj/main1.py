@@ -6,6 +6,8 @@ WHITE = (255, 255, 255)
 GRAY = (200, 200, 200)
 BLACK = (0, 0, 0)
 BLUE = (0, 0, 255)
+GREEN = (0, 255, 0, 128)
+RED = (255, 0, 0, 128)
 
 COLS = ROWS = 10
 board = [[0 for _ in range(COLS)] for _ in range(ROWS)]
@@ -22,22 +24,40 @@ class WelcomeScreen:
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
 
     def place_ships_yourself(self):
-        WIDTH, HEIGHT = 500, 500
+        WIDTH, HEIGHT = 500, 550
         ROWS, COLS = 10, 10
         SQUARE_SIZE = WIDTH // COLS
 
-        AIRCRAFT_CARRIER_LEN = 5
-        BATTLESHIP_LEN = 4
-        DESTROYER_LEN = 3
-        PATROL_BOAT_LEN = 2
-
-        remaining_boats = {
-            "aircraft_carrier": 1,
-            "battleship:": 2,
-            "destroyer": 4,
-            "patrol_boat": 3,
-            "total": 10
+        ships = {
+            "carrier": 5,
+            "battleship": 4,
+            "cruiser": 3,
+            "submarine": 3,
+            "destroyer": 2,
         }
+        remaining_ships = list(ships.items())
+        
+        current_ship_index = 0
+        horizontal = True
+        preview_pos = None
+
+        def can_place_ship(board, row, col, length, horizontal):
+            if horizontal:
+                if col + length > COLS:
+                    return False
+                return all(board[row][col + i] == 0 for i in range(length))
+            else:
+                if row + length > ROWS:
+                    return False
+                return all(board[row + i][col] == 0 for i in range(length))
+
+        def place_ship(board, row, col, length, horizontal):
+            if horizontal:
+                for i in range(length):
+                    board[row][col + i] = 1
+            else:
+                for i in range(length):
+                    board[row + i][col] = 1
 
         grid_screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("Place Ships")
@@ -48,11 +68,26 @@ class WelcomeScreen:
                 if event.type == pygame.QUIT:
                     running = False
 
-                if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.type == pygame.MOUSEBUTTONDOWN and remaining_ships:
                     x, y = event.pos
                     row, col = y // SQUARE_SIZE, x // SQUARE_SIZE
+                    ship_name, ship_length = remaining_ships[current_ship_index]
 
-                    # Placing logic here
+                    if can_place_ship(board, row, col, ship_length, horizontal):
+                        place_ship(board, row, col, ship_length, horizontal)
+                        current_ship_index += 1
+
+                        if current_ship_index >= len(remaining_ships):
+                            remaining_ships.clear()
+
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_r:
+                        horizontal = not horizontal
+
+                if event.type == pygame.MOUSEMOTION:
+                    x, y = event.pos
+                    row, col = y // SQUARE_SIZE, x // SQUARE_SIZE
+                    preview_pos = (row, col)
 
             grid_screen.fill(WHITE)
 
@@ -71,9 +106,31 @@ class WelcomeScreen:
                         1
                     )
 
+            if remaining_ships and preview_pos:
+                ship_name, ship_length = remaining_ships[current_ship_index]
+                row, col = preview_pos
+                valid = can_place_ship(board, row, col, ship_length, horizontal)
+                highlight_color = GREEN if valid else RED
+
+                for i in range(ship_length):
+                    if horizontal:
+                        rect = ((col + i) * SQUARE_SIZE, row * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
+                    else:
+                        rect = (col * SQUARE_SIZE, (row + i) * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
+                    if (0 <= col + i < COLS and 0 <= row < ROWS) or (0 <= col < COLS and 0 <= row + i < ROWS):
+                        pygame.draw.rect(grid_screen, highlight_color, rect)
+
+            if remaining_ships:
+                ship_name, ship_length = remaining_ships[current_ship_index]
+                placing_text = self.font.render(f"Placing: {ship_name} ({ship_length})", True, BLACK)
+                rotate_text = self.font.render("Press R to rotate", True, BLACK)
+
+                grid_screen.blit(placing_text, (WIDTH // 2 - placing_text.get_width() // 2, HEIGHT - 40))
+                grid_screen.blit(rotate_text, (WIDTH // 2 - rotate_text.get_width() // 2, HEIGHT - 20))
+
             pygame.display.flip()
 
-        pygame.display.set_mode((self.WIDTH, self.HEIGHT))  # Return to the original screen size
+        pygame.display.set_mode((self.WIDTH, self.HEIGHT))
 
     def option2(self):
         print("Option 2: Auto place ships")

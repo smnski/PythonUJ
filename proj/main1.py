@@ -23,6 +23,10 @@ class WelcomeScreen:
         self.font = pygame.font.Font(None, 36)
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
 
+    def startGameplay(self):
+        gameplay = Gameplay()
+        gameplay.run()
+
     def placeShipsYourself(self):
         GRID_WIDTH, GRID_HEIGHT = 500, 500
         TEXT_HEIGHT = 50
@@ -82,8 +86,7 @@ class WelcomeScreen:
 
                             if current_ship_index >= len(remaining_ships):
                                 remaining_ships.clear()
-                                gameplay = Gameplay()
-                                gameplay.run()
+                                self.startGameplay()
                                 return
 
                 if event.type == pygame.KEYDOWN:
@@ -141,8 +144,9 @@ class WelcomeScreen:
 
         pygame.display.set_mode((self.WIDTH, self.HEIGHT))
 
-    def option2(self):
-        print("Option 2: Auto place ships")
+    def autoPlaceShips(self):
+        self.startGameplay()
+        return
 
     def drawButton(self, text, x, y, color):
         pygame.draw.rect(self.screen, color, (x, y, self.BUTTON_WIDTH, self.BUTTON_HEIGHT))
@@ -168,7 +172,7 @@ class WelcomeScreen:
 
                     if (self.WIDTH // 2 - self.BUTTON_WIDTH // 2 <= x <= self.WIDTH // 2 + self.BUTTON_WIDTH // 2 and
                         2 * self.HEIGHT // 3 - self.BUTTON_HEIGHT // 2 <= y <= 2 * self.HEIGHT // 3 + self.BUTTON_HEIGHT // 2):
-                        self.option2()
+                        self.autoPlaceShips()
 
             self.screen.fill(WHITE)
             self.drawButton("Place ships yourself",

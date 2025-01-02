@@ -191,17 +191,30 @@ class Gameplay:
     HEIGHT = 700
 
     GRID_WIDTH, GRID_HEIGHT = 500, 500
-    TEXT_HEIGHT = 50
-    DISPLAY_HEIGHT = GRID_HEIGHT + TEXT_HEIGHT
     ROWS, COLS = 10, 10
     SQUARE_SIZE = GRID_WIDTH // COLS
 
     def __init__(self):
-        os.environ['SDL_VIDEO_CENTERED'] = '1'  # This line centers the window
+        os.environ['SDL_VIDEO_CENTERED'] = '1'
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
-        pygame.display.set_caption("Gameplay Placeholder")
-        self.font = pygame.font.Font(None, 74)
+        pygame.display.set_caption("Gameplay")
+        self.font = pygame.font.Font(None, 36)
 
+    def drawGrid(self, x_offset, y_offset, title):
+        title_surface = self.font.render(title, True, BLACK)
+        title_rect = title_surface.get_rect(center=(x_offset + self.GRID_WIDTH // 2, y_offset - 20))
+        self.screen.blit(title_surface, title_rect)
+        
+        for row in range(self.ROWS):
+            for col in range(self.COLS):
+                rect = pygame.Rect(
+                    x_offset + col * self.SQUARE_SIZE,
+                    y_offset + row * self.SQUARE_SIZE,
+                    self.SQUARE_SIZE,
+                    self.SQUARE_SIZE,
+                )
+                pygame.draw.rect(self.screen, GRAY, rect)
+                pygame.draw.rect(self.screen, WHITE, rect, 1)
 
     def run(self):
         running = True
@@ -213,8 +226,14 @@ class Gameplay:
                     sys.exit()
 
             self.screen.fill(WHITE)
-            text = self.font.render("Gameplay Screen", True, BLACK)
-            self.screen.blit(text, (self.WIDTH / 2 - text.get_width() // 2, self.HEIGHT / 2 - text.get_height() // 2))
+
+            self.drawGrid(50, 100, "Your Board")
+            self.drawGrid(self.WIDTH - self.GRID_WIDTH - 50, 100, "Enemy Board")
+            separator_rect = pygame.Rect(
+                self.WIDTH // 2 - 10, 0, 20, self.HEIGHT
+            )
+            pygame.draw.rect(self.screen, GRAY, separator_rect)
+
             pygame.display.flip()
 
 

@@ -12,7 +12,7 @@ GREEN = (0, 255, 0, 128)
 RED = (255, 0, 0, 128)
 
 COLS = ROWS = 10
-board = [[0 for _ in range(COLS)] for _ in range(ROWS)]
+player_board = enemy_board = [[0 for _ in range(COLS)] for _ in range(ROWS)]
 
 class WelcomeScreen:
     WIDTH = 800
@@ -80,13 +80,14 @@ class WelcomeScreen:
                     pygame.quit()
                     sys.exit()
 
+                # Placing ships down with clicks
                 if event.type == pygame.MOUSEBUTTONDOWN and remaining_ships:
                     x, y = event.pos
                     row, col = y // SQUARE_SIZE, x // SQUARE_SIZE
                     if y < GRID_HEIGHT:  # Ignore clicks in the text area
                         ship_name, ship_length = remaining_ships[current_ship_index]
-                        if self.canPlaceShip(board, row, col, ship_length, horizontal):
-                            self.placeShip(board, row, col, ship_length, horizontal)
+                        if self.canPlaceShip(player_board, row, col, ship_length, horizontal):
+                            self.placeShip(player_board, row, col, ship_length, horizontal)
                             current_ship_index += 1
 
                             if current_ship_index >= len(remaining_ships):
@@ -94,10 +95,12 @@ class WelcomeScreen:
                                 self.startGameplay()
                                 return
 
+                # Rotate ships with "r" key
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_r:
                         horizontal = not horizontal
 
+                # Track mouse position and square clicked
                 if event.type == pygame.MOUSEMOTION:
                     x, y = event.pos
                     row, col = y // SQUARE_SIZE, x // SQUARE_SIZE
@@ -105,10 +108,10 @@ class WelcomeScreen:
 
             grid_screen.fill(WHITE)
 
-            # Draw the grid
+            # Draw grid for placing ships
             for row in range(ROWS):
                 for col in range(COLS):
-                    color = BLUE if board[row][col] == 1 else GRAY
+                    color = BLUE if player_board[row][col] == 1 else GRAY
                     pygame.draw.rect(
                         grid_screen,
                         color,
@@ -121,11 +124,11 @@ class WelcomeScreen:
                         1
                     )
 
-            # Draw the preview
+            # Draw preview of placed ships
             if remaining_ships and preview_pos:
                 ship_name, ship_length = remaining_ships[current_ship_index]
                 row, col = preview_pos
-                valid = self.canPlaceShip(board, row, col, ship_length, horizontal)
+                valid = self.canPlaceShip(player_board, row, col, ship_length, horizontal)
                 highlight_color = GREEN if valid else RED
 
                 for i in range(ship_length):
@@ -136,7 +139,7 @@ class WelcomeScreen:
                     if (0 <= col + i < COLS and 0 <= row < ROWS) or (0 <= col < COLS and 0 <= row + i < ROWS):
                         pygame.draw.rect(grid_screen, highlight_color, rect)
 
-            # Draw text
+            # Draw info text
             if remaining_ships:
                 ship_name, ship_length = remaining_ships[current_ship_index]
                 placing_text = self.font.render(f"Placing: {ship_name} ({ship_length})", True, BLACK)
@@ -149,7 +152,10 @@ class WelcomeScreen:
 
         pygame.display.set_mode((self.WIDTH, self.HEIGHT))
 
-    def autoPlaceShips(self):
+    def autoPlaceShips(self, board):
+        """
+        Automatically places ships on the specified board.
+        """
         ships = {
             "carrier": 5,
             "battleship": 4,
@@ -175,7 +181,8 @@ class WelcomeScreen:
                     self.placeShip(board, row, col, ship_length, horizontal)
                     placed = True
 
-        self.startGameplay()
+        if board is player_board:
+            self.startGameplay()
 
     def drawButton(self, text, x, y, color):
         pygame.draw.rect(self.screen, color, (x, y, self.BUTTON_WIDTH, self.BUTTON_HEIGHT))
@@ -194,14 +201,18 @@ class WelcomeScreen:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     x, y = event.pos
 
+                    # "Place ships yourself" button is pressed
                     if (self.WIDTH // 2 - self.BUTTON_WIDTH // 2 <= x <= self.WIDTH // 2 + self.BUTTON_WIDTH // 2 and
                         self.HEIGHT // 3 - self.BUTTON_HEIGHT // 2 <= y <= self.HEIGHT // 3 + self.BUTTON_HEIGHT // 2):
                         self.placeShipsYourself()
+                        self.autoPlaceShips(enemy_board)
                         return
 
+                    # "Auto place ships" button is pressed
                     if (self.WIDTH // 2 - self.BUTTON_WIDTH // 2 <= x <= self.WIDTH // 2 + self.BUTTON_WIDTH // 2 and
                         2 * self.HEIGHT // 3 - self.BUTTON_HEIGHT // 2 <= y <= 2 * self.HEIGHT // 3 + self.BUTTON_HEIGHT // 2):
-                        self.autoPlaceShips()
+                        self.autoPlaceShips(player_board)
+                        self.autoPlaceShips(enemy_board)
 
             self.screen.fill(WHITE)
             self.drawButton("Place ships yourself",
@@ -248,6 +259,7 @@ class Gameplay:
 
     def run(self):
         running = True
+        player_turn = True
 
         while running:
             for event in pygame.event.get():
@@ -257,7 +269,7 @@ class Gameplay:
 
             self.screen.fill(WHITE)
 
-            self.drawGrid(50, 100, "Your Board", board)
+            self.drawGrid(50, 100, "Your Board", player_board)
             self.drawGrid(self.WIDTH - self.GRID_WIDTH - 50, 100, "Enemy Board", [[0]*self.COLS for _ in range(self.ROWS)])
             separator_rect = pygame.Rect(
                 self.WIDTH // 2 - 10, 100, 20, self.GRID_HEIGHT

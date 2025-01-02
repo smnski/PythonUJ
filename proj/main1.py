@@ -285,10 +285,16 @@ class Gameplay:
                 pygame.draw.rect(self.screen, color, rect)
                 pygame.draw.rect(self.screen, WHITE, rect, 1)
 
-                # Optionally draw additional overlays (e.g., hits or sunk ships)
-                if hit_board[row][col] == self.SUNK:
-                    pygame.draw.rect(self.screen, RED, rect)
-                    pygame.draw.rect(self.screen, WHITE, rect, 1)
+                # Draw other hit overlays
+                if hit_board[row][col] == self.DISCOVERED_MISS:
+                    color = DARK_GRAY
+                elif hit_board[row][col] == self.DISCOVERED_HIT:
+                    color = BLUE
+                elif hit_board[row][col] == self.SUNK:
+                    color = RED
+                    
+                pygame.draw.rect(self.screen, color, rect)
+                pygame.draw.rect(self.screen, WHITE, rect, 1)
 
     def drawHitGrid(self, x_offset, y_offset, title, hit_board, highlight_pos=None):
         title_surface = self.font.render(title, True, BLACK)
@@ -327,39 +333,39 @@ class Gameplay:
                 if board[row][col] == symbol:
                     hit_board[row][col] = self.SUNK
 
-    def handleHit(self, row, col, board, hit_board):
+    def handleHit(self, row, col, board, hit_board, remaining_hp):
         if hit_board[row][col] == self.UNDISCOVERED:
             if board[row][col] == 0:
                 hit_board[row][col] = self.DISCOVERED_MISS
             else:
                 ship_type = board[row][col]
                 if ship_type == "c":
-                    self.remaining_hp_enemy["carrier"] -= 1
-                    if self.remaining_hp_enemy["carrier"] > 0:
+                    remaining_hp["carrier"] -= 1
+                    if remaining_hp["carrier"] > 0:
                         hit_board[row][col] = self.DISCOVERED_HIT
                     else:
                         self.markRemainingSunkSquares(board, hit_board, "c")
                 elif ship_type == "b":
-                    self.remaining_hp_enemy["battleship"] -= 1
-                    if self.remaining_hp_enemy["battleship"] > 0:
+                    remaining_hp["battleship"] -= 1
+                    if remaining_hp["battleship"] > 0:
                         hit_board[row][col] = self.DISCOVERED_HIT
                     else:
                         self.markRemainingSunkSquares(board, hit_board, "b")
                 elif ship_type == "r":
-                    self.remaining_hp_enemy["cruiser"] -= 1
-                    if self.remaining_hp_enemy["cruiser"] > 0:
+                    remaining_hp["cruiser"] -= 1
+                    if remaining_hp["cruiser"] > 0:
                         hit_board[row][col] = self.DISCOVERED_HIT
                     else:
                         self.markRemainingSunkSquares(board, hit_board, "r")
                 elif ship_type == "s":
-                    self.remaining_hp_enemy["submarine"] -= 1
-                    if self.remaining_hp_enemy["submarine"] > 0:
+                    remaining_hp["submarine"] -= 1
+                    if remaining_hp["submarine"] > 0:
                         hit_board[row][col] = self.DISCOVERED_HIT
                     else:
                         self.markRemainingSunkSquares(board, hit_board, "s")
                 elif ship_type == "d":
-                    self.remaining_hp_enemy["destroyer"] -= 1
-                    if self.remaining_hp_enemy["destroyer"] > 0:
+                    remaining_hp["destroyer"] -= 1
+                    if remaining_hp["destroyer"] > 0:
                         hit_board[row][col] = self.DISCOVERED_HIT
                     else:
                         self.markRemainingSunkSquares(board, hit_board, "d")
@@ -374,7 +380,7 @@ class Gameplay:
         if out_of_bounds or already_discovered:
             return False
 
-        return self.handleHit(row, col, enemy_board, self.enemy_hit_board)
+        return self.handleHit(row, col, enemy_board, self.enemy_hit_board, self.remaining_hp_enemy)
     
     def selectionAI(self, hit_board):
         directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
@@ -440,7 +446,7 @@ class Gameplay:
 
                 if not player_turn:
                     row, col = self.selectionAI(self.player_hit_board)
-                    self.player_hit_board[row][col] = self.SUNK
+                    self.handleHit(row, col, player_board, self.player_hit_board, self.remaining_hp_player)
                     player_turn = True
 
                 # Tracking mouse position and highlighting squares that are hovered over

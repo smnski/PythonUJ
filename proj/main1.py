@@ -236,7 +236,7 @@ class Gameplay:
     UNDISCOVERED = 0
     DISCOVERED_MISS = 1
     DISCOVERED_HIT = 2
-    SHIP_SUNK = 3
+    SUNK = 3
 
     def __init__(self):
         os.environ['SDL_VIDEO_CENTERED'] = '1'
@@ -245,6 +245,20 @@ class Gameplay:
         self.font = pygame.font.Font(None, 36)
         self.player_hit_squares = [[0 for _ in range(self.COLS)] for _ in range(self.ROWS)]
         self.enemy_hit_squares = [[0 for _ in range(self.COLS)] for _ in range(self.ROWS)]
+        self.remaining_hp_player = {
+            "carrier": 5,
+            "battleship": 4,
+            "cruiser": 3,
+            "submarine": 3,
+            "destroyer": 2,
+        }
+        self.remaining_hp_enemy = {
+            "carrier": 5,
+            "battleship": 4,
+            "cruiser": 3,
+            "submarine": 3,
+            "destroyer": 2,
+        }
 
     def drawGrid(self, x_offset, y_offset, title, board, highlight_pos=None, hit_board=None):
         title_surface = self.font.render(title, True, BLACK)
@@ -274,6 +288,12 @@ class Gameplay:
                 if highlight_pos == (row, col):
                     pygame.draw.rect(self.screen, GREEN, rect, 3)
 
+    def markRemainingSunkSquares(self, board, symbol):
+        for row in range(self.ROWS):
+            for col in range(self.COLS):
+                if board[row][col] == symbol:
+                    self.enemy_hit_squares[row][col] = self.SUNK
+
     def handleClickOnEnemyGrid(self, x, y, x_offset, y_offset):
         col = (x - x_offset) // self.SQUARE_SIZE
         row = (y - y_offset) // self.SQUARE_SIZE
@@ -283,8 +303,42 @@ class Gameplay:
                 if enemy_board[row][col] == 0:
                     self.enemy_hit_squares[row][col] = self.DISCOVERED_MISS
                 else:
-                    self.enemy_hit_squares[row][col] = self.DISCOVERED_HIT
-                    # Additional logic for hits or sinking ships can go here
+                    ship_type = enemy_board[row][col]
+                    if ship_type == "c":
+                        self.remaining_hp_enemy["carrier"] = self.remaining_hp_enemy["carrier"] - 1
+                        if self.remaining_hp_enemy["carrier"] - 1 > 0:
+                            self.enemy_hit_squares[row][col] = self.DISCOVERED_HIT
+                        else:
+                            self.enemy_hit_squares[row][col] = self.SUNK
+                            self.markRemainingSunkSquares(self.enemy_hit_squares, "c")
+                    elif ship_type == "b":
+                        self.remaining_hp_enemy["battleship"] = self.remaining_hp_enemy["battleship"] - 1
+                        if self.remaining_hp_enemy["battleship"] - 1 > 0:
+                            self.enemy_hit_squares[row][col] = self.DISCOVERED_HIT
+                        else:
+                            self.enemy_hit_squares[row][col] = self.SUNK
+                            self.markRemainingSunkSquares(self.enemy_hit_squares, "b")
+                    elif ship_type == "r":
+                        self.remaining_hp_enemy["cruiser"] = self.remaining_hp_enemy["cruiser"] - 1
+                        if self.remaining_hp_enemy["cruiser"] - 1 > 0:
+                            self.enemy_hit_squares[row][col] = self.DISCOVERED_HIT
+                        else:
+                            self.enemy_hit_squares[row][col] = self.SUNK
+                            self.markRemainingSunkSquares(self.enemy_hit_squares, "r")
+                    elif ship_type == "s":
+                        self.remaining_hp_enemy["submarine"] = self.remaining_hp_enemy["submarine"] - 1
+                        if self.remaining_hp_enemy["submarine"] - 1 > 0:
+                            self.enemy_hit_squares[row][col] = self.DISCOVERED_HIT
+                        else:
+                            self.enemy_hit_squares[row][col] = self.SUNK
+                            self.markRemainingSunkSquares(self.enemy_hit_squares, "s")
+                    elif ship_type == "d":
+                        self.remaining_hp_enemy["destroyer"] = self.remaining_hp_enemy["destroyer"] - 1
+                        if self.remaining_hp_enemy["destroyer"] - 1 > 0:
+                            self.enemy_hit_squares[row][col] = self.DISCOVERED_HIT
+                        else:
+                            self.enemy_hit_squares[row][col] = self.SUNK
+                            self.markRemainingSunkSquares(self.enemy_hit_squares, "d")
 
     def run(self):
         running = True

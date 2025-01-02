@@ -261,7 +261,7 @@ class Gameplay:
             "destroyer": 2,
         }
 
-    def drawGrid(self, x_offset, y_offset, title, hit_board, highlight_pos=None):
+    def drawHitGrid(self, x_offset, y_offset, title, hit_board, highlight_pos=None):
         title_surface = self.font.render(title, True, BLACK)
         title_rect = title_surface.get_rect(center=(x_offset + self.GRID_WIDTH // 2, y_offset - 20))
         self.screen.blit(title_surface, title_rect)
@@ -274,6 +274,9 @@ class Gameplay:
                     self.SQUARE_SIZE,
                     self.SQUARE_SIZE,
                 )
+
+                color = GRAY # default
+
                 if hit_board[row][col] == self.UNDISCOVERED:
                     color = GRAY
                 elif hit_board[row][col] == self.DISCOVERED_MISS:
@@ -340,6 +343,33 @@ class Gameplay:
                     else:
                         self.markRemainingSunkSquaresEnemy(enemy_board, "d")
         return True
+    
+    def selectionAI(self, hit_board):
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        
+        def is_valid(row, col):
+            return 0 <= row < self.ROWS and 0 <= col < self.COLS and hit_board[row][col] == self.UNDISCOVERED
+
+        def find_hit():
+            for row in range(self.ROWS):
+                for col in range(self.COLS):
+                    if hit_board[row][col] == self.DISCOVERED_HIT:
+                        for dr, dc in directions:
+                            new_row, new_col = row + dr, col + dc
+                            if is_valid(new_row, new_col):
+                                return new_row, new_col
+            return None
+
+        next_shot = find_hit()
+        if not next_shot:
+            while True:
+                row = random.randint(0, self.ROWS - 1)
+                col = random.randint(0, self.COLS - 1)
+                if hit_board[row][col] == self.UNDISCOVERED:
+                    next_shot = (row, col)
+                    break
+
+        return next_shot                        
 
     def run(self):
         running = True
@@ -355,12 +385,16 @@ class Gameplay:
                     pygame.quit()
                     sys.exit()
 
-                # Clicking on enemy grid
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     x, y = event.pos
                     if enemy_grid_x_offset <= x < enemy_grid_x_offset + self.GRID_WIDTH and \
                             enemy_grid_y_offset <= y < enemy_grid_y_offset + self.GRID_HEIGHT:
-                        self.handleClickOnEnemyGrid(x, y, enemy_grid_x_offset, enemy_grid_y_offset)
+                        player_turn = not self.handleClickOnEnemyGrid(x, y, enemy_grid_x_offset, enemy_grid_y_offset)
+
+                if not player_turn:
+                    row, col = self.selectionAI(self.player_hit_board)
+                    self.player_hit_board[row][col] = self.SUNK
+                    player_turn = True
 
                 # Tracking mouse position and highlighting squares that are hovered over
                 if event.type == pygame.MOUSEMOTION:
@@ -375,8 +409,8 @@ class Gameplay:
 
             self.screen.fill(WHITE)
 
-            self.drawGrid(50, 100, "Your Board", self.player_hit_board)
-            self.drawGrid(enemy_grid_x_offset, enemy_grid_y_offset, "Enemy Board", self.enemy_hit_board, highlight_pos)
+            self.drawHitGrid(50, 100, "Your Board", self.player_hit_board)
+            self.drawHitGrid(enemy_grid_x_offset, enemy_grid_y_offset, "Enemy Board", self.enemy_hit_board, highlight_pos)
 
             pygame.display.flip()
 

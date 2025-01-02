@@ -296,7 +296,7 @@ class Gameplay:
                 pygame.draw.rect(self.screen, color, rect)
                 pygame.draw.rect(self.screen, WHITE, rect, 1)
 
-    def drawHitGrid(self, x_offset, y_offset, title, hit_board, highlight_pos=None):
+    def drawEnemyGrid(self, x_offset, y_offset, title, hit_board, highlight_pos=None):
         title_surface = self.font.render(title, True, BLACK)
         title_rect = title_surface.get_rect(center=(x_offset + self.GRID_WIDTH // 2, y_offset - 20))
         self.screen.blit(title_surface, title_rect)
@@ -369,6 +369,8 @@ class Gameplay:
                         hit_board[row][col] = self.DISCOVERED_HIT
                     else:
                         self.markRemainingSunkSquares(board, hit_board, "d")
+
+        if(self.isGameOver()): self.handleGameOver()
         return True
 
     def handleClickOnEnemyGrid(self, x, y, x_offset, y_offset):
@@ -424,6 +426,15 @@ class Gameplay:
             if hit_board[row][col] == self.UNDISCOVERED:
                 return row, col
 
+    def isGameOver(self):
+        total_hp_enemy = sum(self.remaining_hp_enemy.values())
+        total_hp_player = sum(self.remaining_hp_player.values())
+
+        return total_hp_enemy <= 0 or total_hp_player <= 0
+
+    def handleGameOver(self):
+        print('aa')
+
     def run(self):
         running = True
         player_turn = True
@@ -463,7 +474,7 @@ class Gameplay:
             self.screen.fill(WHITE)
 
             self.drawPlayerGrid(50, 100, "Your Board", self.player_hit_board)
-            self.drawHitGrid(enemy_grid_x_offset, enemy_grid_y_offset, "Enemy Board", self.enemy_hit_board, highlight_pos)
+            self.drawEnemyGrid(enemy_grid_x_offset, enemy_grid_y_offset, "Enemy Board", self.enemy_hit_board, highlight_pos)
 
             pygame.display.flip()
 

@@ -11,6 +11,7 @@ BLACK = (0, 0, 0)
 BLUE = (0, 0, 255)
 GREEN = (0, 255, 0, 128)
 RED = (255, 0, 0, 128)
+DARK_GREEN = (1, 50, 32)
 
 COLS = ROWS = 10
 player_board = [[0 for _ in range(COLS)] for _ in range(ROWS)]
@@ -277,7 +278,7 @@ class Gameplay:
 
                 # Determine the color based on the state
                 if player_board[row][col] != 0:
-                    color = BLUE
+                    color = DARK_GREEN
                 else:
                     color = GRAY
 
@@ -320,11 +321,11 @@ class Gameplay:
                 if highlight_pos == (row, col):
                     pygame.draw.rect(self.screen, GREEN, rect, 3)
 
-    def markRemainingSunkSquaresEnemy(self, board, symbol):
+    def markRemainingSunkSquaresEnemy(self, board, hit_board, symbol):
         for row in range(self.ROWS):
             for col in range(self.COLS):
                 if board[row][col] == symbol:
-                    self.enemy_hit_board[row][col] = self.SUNK
+                    hit_board[row][col] = self.SUNK
 
     def handleClickOnEnemyGrid(self, x, y, x_offset, y_offset):
         col = (x - x_offset) // self.SQUARE_SIZE
@@ -345,31 +346,31 @@ class Gameplay:
                     if self.remaining_hp_enemy["carrier"] > 0:
                         self.enemy_hit_board[row][col] = self.DISCOVERED_HIT
                     else:
-                        self.markRemainingSunkSquaresEnemy(enemy_board, "c")
+                        self.markRemainingSunkSquaresEnemy(enemy_board, self.enemy_hit_board, "c")
                 elif ship_type == "b":
                     self.remaining_hp_enemy["battleship"] -= 1
                     if self.remaining_hp_enemy["battleship"] > 0:
                         self.enemy_hit_board[row][col] = self.DISCOVERED_HIT
                     else:
-                        self.markRemainingSunkSquaresEnemy(enemy_board, "b")
+                        self.markRemainingSunkSquaresEnemy(enemy_board, self.enemy_hit_board, "b")
                 elif ship_type == "r":
                     self.remaining_hp_enemy["cruiser"] -= 1
                     if self.remaining_hp_enemy["cruiser"] > 0:
                         self.enemy_hit_board[row][col] = self.DISCOVERED_HIT
                     else:
-                        self.markRemainingSunkSquaresEnemy(enemy_board, "r")
+                        self.markRemainingSunkSquaresEnemy(enemy_board, self.enemy_hit_board, "r")
                 elif ship_type == "s":
                     self.remaining_hp_enemy["submarine"] -= 1
                     if self.remaining_hp_enemy["submarine"] > 0:
                         self.enemy_hit_board[row][col] = self.DISCOVERED_HIT
                     else:
-                        self.markRemainingSunkSquaresEnemy(enemy_board, "s")
+                        self.markRemainingSunkSquaresEnemy(enemy_board, self.enemy_hit_board, "s")
                 elif ship_type == "d":
                     self.remaining_hp_enemy["destroyer"] -= 1
                     if self.remaining_hp_enemy["destroyer"] > 0:
                         self.enemy_hit_board[row][col] = self.DISCOVERED_HIT
                     else:
-                        self.markRemainingSunkSquaresEnemy(enemy_board, "d")
+                        self.markRemainingSunkSquaresEnemy(enemy_board, self.enemy_hit_board, "d")
         return True
     
     def selectionAI(self, hit_board):
@@ -378,26 +379,41 @@ class Gameplay:
         def is_valid(row, col):
             return 0 <= row < self.ROWS and 0 <= col < self.COLS and hit_board[row][col] == self.UNDISCOVERED
 
-        def find_hit():
-            for row in range(self.ROWS):
-                for col in range(self.COLS):
-                    if hit_board[row][col] == self.DISCOVERED_HIT:
-                        for dr, dc in directions:
-                            new_row, new_col = row + dr, col + dc
-                            if is_valid(new_row, new_col):
-                                return new_row, new_col
+        def follow_direction(row, col, direction):
+            dr, dc = direction
+            while 0 <= row < self.ROWS and 0 <= col < self.COLS:
+                row += dr
+                col += dc
+                if is_valid(row, col):
+                    return row, col
+                if hit_board[row][col] != self.DISCOVERED_HIT:
+                    break
             return None
 
-        next_shot = find_hit()
-        if not next_shot:
-            while True:
-                row = random.randint(0, self.ROWS - 1)
-                col = random.randint(0, self.COLS - 1)
-                if hit_board[row][col] == self.UNDISCOVERED:
-                    next_shot = (row, col)
-                    break
+        # Search for a direction to follow if there's a hit
+        for row in range(self.ROWS):
+            for col in range(self.COLS):
+                if hit_board[row][col] == self.DISCOVERED_HIT:
+                    for dr, dc in directions:
+                        new_shot = follow_direction(row, col, (dr, dc))
+                        if new_shot:
+                            return new_shot
 
-        return next_shot                        
+        # If no directions to follow, find an adjacent undiscovered square
+        for row in range(self.ROWS):
+            for col in range(self.COLS):
+                if hit_board[row][col] == self.DISCOVERED_HIT:
+                    for dr, dc in directions:
+                        new_row, new_col = row + dr, col + dc
+                        if is_valid(new_row, new_col):
+                            return new_row, new_col
+
+        # Fallback to random selection if no hits are found
+        while True:
+            row = random.randint(0, self.ROWS - 1)
+            col = random.randint(0, self.COLS - 1)
+            if hit_board[row][col] == self.UNDISCOVERED:
+                return row, col
 
     def run(self):
         running = True

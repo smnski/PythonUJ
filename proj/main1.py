@@ -431,7 +431,29 @@ class Gameplay:
         return total_hp_enemy <= 0 or total_hp_player <= 0
 
     def handleGameOver(self):
-        print('aa')
+        pygame.quit()  # Close the current game window
+        winner = "Player" if sum(self.remaining_hp_enemy.values()) == 0 else "Enemy"
+
+        # Open a new window to display the winner
+        pygame.init()
+        winner_screen = pygame.display.set_mode((400, 200))
+        pygame.display.set_caption("Game Over")
+        font = pygame.font.Font(None, 36)
+        text_surface = font.render(f"{winner} Wins!", True, BLACK)
+        text_rect = text_surface.get_rect(center=(200, 100))
+        
+        running = True
+        while running:
+            winner_screen.fill(WHITE)
+            winner_screen.blit(text_surface, text_rect)
+            pygame.display.flip()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+
+        pygame.quit()
+        sys.exit()
 
     def run(self):
         running = True

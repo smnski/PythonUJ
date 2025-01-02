@@ -1,5 +1,6 @@
 import pygame
 import sys
+import os
 
 # Constants
 WHITE = (255, 255, 255)
@@ -186,13 +187,21 @@ class WelcomeScreen:
             pygame.display.flip()
 
 class Gameplay:
-    WIDTH = 800
-    HEIGHT = 600
+    WIDTH = 1200
+    HEIGHT = 700
+
+    GRID_WIDTH, GRID_HEIGHT = 500, 500
+    TEXT_HEIGHT = 50
+    DISPLAY_HEIGHT = GRID_HEIGHT + TEXT_HEIGHT
+    ROWS, COLS = 10, 10
+    SQUARE_SIZE = GRID_WIDTH // COLS
 
     def __init__(self):
+        os.environ['SDL_VIDEO_CENTERED'] = '1'  # This line centers the window
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
         pygame.display.set_caption("Gameplay Placeholder")
         self.font = pygame.font.Font(None, 74)
+
 
     def run(self):
         running = True

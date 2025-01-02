@@ -328,53 +328,53 @@ class Gameplay:
                     hit_board[row][col] = self.SUNK
 
     def handleHit(self, row, col, board, hit_board):
-        print("AAAAAAAAa")
+        if hit_board[row][col] == self.UNDISCOVERED:
+            if board[row][col] == 0:
+                hit_board[row][col] = self.DISCOVERED_MISS
+            else:
+                ship_type = board[row][col]
+                if ship_type == "c":
+                    self.remaining_hp_enemy["carrier"] -= 1
+                    if self.remaining_hp_enemy["carrier"] > 0:
+                        hit_board[row][col] = self.DISCOVERED_HIT
+                    else:
+                        self.markRemainingSunkSquares(board, hit_board, "c")
+                elif ship_type == "b":
+                    self.remaining_hp_enemy["battleship"] -= 1
+                    if self.remaining_hp_enemy["battleship"] > 0:
+                        hit_board[row][col] = self.DISCOVERED_HIT
+                    else:
+                        self.markRemainingSunkSquares(board, hit_board, "b")
+                elif ship_type == "r":
+                    self.remaining_hp_enemy["cruiser"] -= 1
+                    if self.remaining_hp_enemy["cruiser"] > 0:
+                        hit_board[row][col] = self.DISCOVERED_HIT
+                    else:
+                        self.markRemainingSunkSquares(board, hit_board, "r")
+                elif ship_type == "s":
+                    self.remaining_hp_enemy["submarine"] -= 1
+                    if self.remaining_hp_enemy["submarine"] > 0:
+                        hit_board[row][col] = self.DISCOVERED_HIT
+                    else:
+                        self.markRemainingSunkSquares(board, hit_board, "s")
+                elif ship_type == "d":
+                    self.remaining_hp_enemy["destroyer"] -= 1
+                    if self.remaining_hp_enemy["destroyer"] > 0:
+                        hit_board[row][col] = self.DISCOVERED_HIT
+                    else:
+                        self.markRemainingSunkSquares(board, hit_board, "d")
+        return True
 
     def handleClickOnEnemyGrid(self, x, y, x_offset, y_offset):
         col = (x - x_offset) // self.SQUARE_SIZE
         row = (y - y_offset) // self.SQUARE_SIZE
 
         out_of_bounds = not (0 <= row < self.ROWS and 0 <= col < self.COLS)
-        already_discovered = self.enemy_hit_board[row][col] == self.DISCOVERED_HIT or self.enemy_hit_board[row][col] == self.DISCOVERED_MISS
+        already_discovered = self.enemy_hit_board[row][col] == self.DISCOVERED_HIT or self.enemy_hit_board[row][col] == self.DISCOVERED_MISS or self.enemy_hit_board[row][col] == self.SUNK
         if out_of_bounds or already_discovered:
             return False
 
-        if self.enemy_hit_board[row][col] == self.UNDISCOVERED:
-            if enemy_board[row][col] == 0:
-                self.enemy_hit_board[row][col] = self.DISCOVERED_MISS
-            else:
-                ship_type = enemy_board[row][col]
-                if ship_type == "c":
-                    self.remaining_hp_enemy["carrier"] -= 1
-                    if self.remaining_hp_enemy["carrier"] > 0:
-                        self.enemy_hit_board[row][col] = self.DISCOVERED_HIT
-                    else:
-                        self.markRemainingSunkSquares(enemy_board, self.enemy_hit_board, "c")
-                elif ship_type == "b":
-                    self.remaining_hp_enemy["battleship"] -= 1
-                    if self.remaining_hp_enemy["battleship"] > 0:
-                        self.enemy_hit_board[row][col] = self.DISCOVERED_HIT
-                    else:
-                        self.markRemainingSunkSquares(enemy_board, self.enemy_hit_board, "b")
-                elif ship_type == "r":
-                    self.remaining_hp_enemy["cruiser"] -= 1
-                    if self.remaining_hp_enemy["cruiser"] > 0:
-                        self.enemy_hit_board[row][col] = self.DISCOVERED_HIT
-                    else:
-                        self.markRemainingSunkSquares(enemy_board, self.enemy_hit_board, "r")
-                elif ship_type == "s":
-                    self.remaining_hp_enemy["submarine"] -= 1
-                    if self.remaining_hp_enemy["submarine"] > 0:
-                        self.enemy_hit_board[row][col] = self.DISCOVERED_HIT
-                    else:
-                        self.markRemainingSunkSquares(enemy_board, self.enemy_hit_board, "s")
-                elif ship_type == "d":
-                    self.remaining_hp_enemy["destroyer"] -= 1
-                    if self.remaining_hp_enemy["destroyer"] > 0:
-                        self.enemy_hit_board[row][col] = self.DISCOVERED_HIT
-                    else:
-                        self.markRemainingSunkSquares(enemy_board, self.enemy_hit_board, "d")
-        return True
+        return self.handleHit(row, col, enemy_board, self.enemy_hit_board)
     
     def selectionAI(self, hit_board):
         directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]

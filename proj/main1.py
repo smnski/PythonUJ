@@ -261,6 +261,34 @@ class Gameplay:
             "destroyer": 2,
         }
 
+    def drawPlayerGrid(self, x_offset, y_offset, title, hit_board):
+        title_surface = self.font.render(title, True, BLACK)
+        title_rect = title_surface.get_rect(center=(x_offset + self.GRID_WIDTH // 2, y_offset - 20))
+        self.screen.blit(title_surface, title_rect)
+
+        for row in range(self.ROWS):
+            for col in range(self.COLS):
+                rect = pygame.Rect(
+                    x_offset + col * self.SQUARE_SIZE,
+                    y_offset + row * self.SQUARE_SIZE,
+                    self.SQUARE_SIZE,
+                    self.SQUARE_SIZE,
+                )
+
+                # Determine the color based on the state
+                if player_board[row][col] != 0:
+                    color = BLUE
+                else:
+                    color = GRAY
+
+                pygame.draw.rect(self.screen, color, rect)
+                pygame.draw.rect(self.screen, WHITE, rect, 1)
+
+                # Optionally draw additional overlays (e.g., hits or sunk ships)
+                if hit_board[row][col] == self.SUNK:
+                    pygame.draw.rect(self.screen, RED, rect)
+                    pygame.draw.rect(self.screen, WHITE, rect, 1)
+
     def drawHitGrid(self, x_offset, y_offset, title, hit_board, highlight_pos=None):
         title_surface = self.font.render(title, True, BLACK)
         title_rect = title_surface.get_rect(center=(x_offset + self.GRID_WIDTH // 2, y_offset - 20))
@@ -409,7 +437,7 @@ class Gameplay:
 
             self.screen.fill(WHITE)
 
-            self.drawHitGrid(50, 100, "Your Board", self.player_hit_board)
+            self.drawPlayerGrid(50, 100, "Your Board", self.player_hit_board)
             self.drawHitGrid(enemy_grid_x_offset, enemy_grid_y_offset, "Enemy Board", self.enemy_hit_board, highlight_pos)
 
             pygame.display.flip()

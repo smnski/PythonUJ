@@ -26,6 +26,13 @@ class WelcomeScreen:
         os.environ['SDL_VIDEO_CENTERED'] = '1'
         self.font = pygame.font.Font(None, 36)
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+        self.ships = {
+            "carrier": { "symbol": "c", "size": 5 },
+            "battleship": { "symbol": "b", "size": 4 },
+            "cruiser": { "symbol": "r", "size": 3 },
+            "submarine": { "symbol": "s", "size": 3 },
+            "destroyer": { "symbol": "d", "size": 2 },
+        }
 
     @staticmethod
     def canPlaceShip(board, row, col, length, horizontal):
@@ -39,13 +46,13 @@ class WelcomeScreen:
             return all(board[row + i][col] == 0 for i in range(length))
 
     @staticmethod
-    def placeShip(board, row, col, length, horizontal):
+    def placeShip(board, row, col, length, horizontal, symbol):
         if horizontal:
             for i in range(length):
-                board[row][col + i] = 1
+                board[row][col + i] = symbol
         else:
             for i in range(length):
-                board[row + i][col] = 1
+                board[row + i][col] = symbol
 
     def startGameplay(self):
         gameplay = Gameplay()
@@ -58,14 +65,7 @@ class WelcomeScreen:
         ROWS, COLS = 10, 10
         SQUARE_SIZE = GRID_WIDTH // COLS
 
-        ships = {
-            "carrier": 5,
-            "battleship": 4,
-            "cruiser": 3,
-            "submarine": 3,
-            "destroyer": 2,
-        }
-        remaining_ships = list(ships.items())
+        remaining_ships = list(self.ships.items())
         
         current_ship_index = 0
         horizontal = True
@@ -86,11 +86,14 @@ class WelcomeScreen:
                     x, y = event.pos
                     row, col = y // SQUARE_SIZE, x // SQUARE_SIZE
                     if y < GRID_HEIGHT:  # Ignore clicks in the text area
-                        ship_name, ship_length = remaining_ships[current_ship_index]
+                        ship_name, ship_data = remaining_ships[current_ship_index]
+                        ship_symbol = ship_data["symbol"]
+                        ship_length = ship_data["size"]
                         if self.canPlaceShip(player_board, row, col, ship_length, horizontal):
-                            self.placeShip(player_board, row, col, ship_length, horizontal)
+                            self.placeShip(player_board, row, col, ship_length, horizontal, ship_symbol)
                             current_ship_index += 1
 
+                            # If no more ships to place, start gameplay
                             if current_ship_index >= len(remaining_ships):
                                 remaining_ships.clear()
                                 self.startGameplay()
@@ -112,7 +115,7 @@ class WelcomeScreen:
             # Draw grid for placing ships
             for row in range(ROWS):
                 for col in range(COLS):
-                    color = BLUE if player_board[row][col] == 1 else GRAY
+                    color = BLUE if player_board[row][col] != 0 else GRAY
                     pygame.draw.rect(
                         grid_screen,
                         color,
@@ -127,7 +130,8 @@ class WelcomeScreen:
 
             # Draw preview of placed ships
             if remaining_ships and preview_pos:
-                ship_name, ship_length = remaining_ships[current_ship_index]
+                ship_name, ship_data = remaining_ships[current_ship_index]
+                ship_length = ship_data["size"]
                 row, col = preview_pos
                 valid = self.canPlaceShip(player_board, row, col, ship_length, horizontal)
                 highlight_color = GREEN if valid else RED
@@ -142,7 +146,8 @@ class WelcomeScreen:
 
             # Draw info text
             if remaining_ships:
-                ship_name, ship_length = remaining_ships[current_ship_index]
+                ship_name, ship_data = remaining_ships[current_ship_index]
+                ship_length = ship_data["size"]
                 placing_text = self.font.render(f"Placing: {ship_name} ({ship_length})", True, BLACK)
                 rotate_text = self.font.render("Press R to rotate", True, BLACK)
 
@@ -154,21 +159,14 @@ class WelcomeScreen:
         pygame.display.set_mode((self.WIDTH, self.HEIGHT))
 
     def autoPlaceShips(self, board):
-        """
-        Automatically places ships on the specified board.
-        """
-        ships = {
-            "carrier": 5,
-            "battleship": 4,
-            "cruiser": 3,
-            "submarine": 3,
-            "destroyer": 2,
-        }
-        remaining_ships = list(ships.items())
+        remaining_ships = list(self.ships.items())
 
         while remaining_ships:
-            _, ship_length = remaining_ships.pop()
+            ship_name, ship_data = remaining_ships.pop()
+            ship_symbol = ship_data["symbol"]
+            ship_length = ship_data["size"]
             placed = False
+
             while not placed:
                 horizontal = random.choice([True, False])
                 if horizontal:
@@ -179,9 +177,10 @@ class WelcomeScreen:
                     col = random.randint(0, COLS - 1)
 
                 if self.canPlaceShip(board, row, col, ship_length, horizontal):
-                    self.placeShip(board, row, col, ship_length, horizontal)
+                    self.placeShip(board, row, col, ship_length, horizontal, ship_symbol)
                     placed = True
 
+        # If finished placing ships for player, start the game
         if board is player_board:
             self.startGameplay()
 
@@ -205,15 +204,14 @@ class WelcomeScreen:
                     # "Place ships yourself" button is pressed
                     if (self.WIDTH // 2 - self.BUTTON_WIDTH // 2 <= x <= self.WIDTH // 2 + self.BUTTON_WIDTH // 2 and
                         self.HEIGHT // 3 - self.BUTTON_HEIGHT // 2 <= y <= self.HEIGHT // 3 + self.BUTTON_HEIGHT // 2):
-                        self.placeShipsYourself()
                         self.autoPlaceShips(enemy_board)
-                        return
+                        self.placeShipsYourself()
 
                     # "Auto place ships" button is pressed
                     if (self.WIDTH // 2 - self.BUTTON_WIDTH // 2 <= x <= self.WIDTH // 2 + self.BUTTON_WIDTH // 2 and
                         2 * self.HEIGHT // 3 - self.BUTTON_HEIGHT // 2 <= y <= 2 * self.HEIGHT // 3 + self.BUTTON_HEIGHT // 2):
-                        self.autoPlaceShips(player_board)
                         self.autoPlaceShips(enemy_board)
+                        self.autoPlaceShips(player_board)
 
             self.screen.fill(WHITE)
             self.drawButton("Place ships yourself",
@@ -227,6 +225,7 @@ class WelcomeScreen:
             pygame.display.flip()
 
 class Gameplay:
+    # Constants
     WIDTH = 1200
     HEIGHT = 700
 
@@ -234,12 +233,18 @@ class Gameplay:
     ROWS, COLS = 10, 10
     SQUARE_SIZE = GRID_WIDTH // COLS
 
+    UNDISCOVERED = 0
+    DISCOVERED_MISS = 1
+    DISCOVERED_HIT = 2
+    SHIP_SUNK = 3
+
     def __init__(self):
         os.environ['SDL_VIDEO_CENTERED'] = '1'
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
         pygame.display.set_caption("Gameplay")
         self.font = pygame.font.Font(None, 36)
-        self.hits_on_enemy_board = [[0 for _ in range(self.COLS)] for _ in range(self.ROWS)]
+        self.player_hit_squares = [[0 for _ in range(self.COLS)] for _ in range(self.ROWS)]
+        self.enemy_hit_squares = [[0 for _ in range(self.COLS)] for _ in range(self.ROWS)]
 
     def drawGrid(self, x_offset, y_offset, title, board, highlight_pos=None, hit_board=None):
         title_surface = self.font.render(title, True, BLACK)
@@ -254,10 +259,12 @@ class Gameplay:
                     self.SQUARE_SIZE,
                     self.SQUARE_SIZE,
                 )
-                if board[row][col] == 1:
+                if board[row][col] != 0 and hit_board is None:
                     color = BLUE  # A ship is present
-                elif hit_board and hit_board[row][col] == 1:
+                elif hit_board and hit_board[row][col] == self.DISCOVERED_HIT:
                     color = RED  # Hit
+                elif hit_board and hit_board[row][col] == self.DISCOVERED_MISS:
+                    color = GRAY  # Miss
                 else:
                     color = GRAY  # Default
 
@@ -272,10 +279,12 @@ class Gameplay:
         row = (y - y_offset) // self.SQUARE_SIZE
 
         if 0 <= row < self.ROWS and 0 <= col < self.COLS:
-            if self.hits_on_enemy_board[row][col] == 0:
-                self.hits_on_enemy_board[row][col] = 1 
-
-        print(self.hits_on_enemy_board)
+            if self.enemy_hit_squares[row][col] == 0:
+                if enemy_board[row][col] == 0:
+                    self.enemy_hit_squares[row][col] = self.DISCOVERED_MISS
+                else:
+                    self.enemy_hit_squares[row][col] = self.DISCOVERED_HIT
+                    # Additional logic for hits or sinking ships can go here
 
     def run(self):
         running = True
@@ -291,12 +300,14 @@ class Gameplay:
                     pygame.quit()
                     sys.exit()
 
+                # Clicking on enemy grid
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     x, y = event.pos
                     if enemy_grid_x_offset <= x < enemy_grid_x_offset + self.GRID_WIDTH and \
                             enemy_grid_y_offset <= y < enemy_grid_y_offset + self.GRID_HEIGHT:
                         self.handleClickOnEnemyGrid(x, y, enemy_grid_x_offset, enemy_grid_y_offset)
 
+                # Tracking mouse position and highlighting squares that are hovered over
                 if event.type == pygame.MOUSEMOTION:
                     x, y = event.pos
                     if enemy_grid_x_offset <= x < enemy_grid_x_offset + self.GRID_WIDTH and \
@@ -310,15 +321,9 @@ class Gameplay:
             self.screen.fill(WHITE)
 
             self.drawGrid(50, 100, "Your Board", player_board)
-            self.drawGrid(enemy_grid_x_offset, enemy_grid_y_offset, "Enemy Board", [[0]*self.COLS for _ in range(self.ROWS)], highlight_pos, self.hits_on_enemy_board)
-
-            separator_rect = pygame.Rect(
-                self.WIDTH // 2 - 10, 100, 20, self.GRID_HEIGHT
-            )
-            pygame.draw.rect(self.screen, GRAY, separator_rect)
+            self.drawGrid(enemy_grid_x_offset, enemy_grid_y_offset, "Enemy Board", [[0]*self.COLS for _ in range(self.ROWS)], highlight_pos, self.enemy_hit_squares)
 
             pygame.display.flip()
-
 
 if __name__ == "__main__":
     welcome_screen = WelcomeScreen()

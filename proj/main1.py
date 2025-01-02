@@ -21,6 +21,7 @@ class WelcomeScreen:
 
     def __init__(self):
         pygame.init()
+        os.environ['SDL_VIDEO_CENTERED'] = '1'
         self.font = pygame.font.Font(None, 36)
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
 
@@ -146,6 +147,7 @@ class WelcomeScreen:
         pygame.display.set_mode((self.WIDTH, self.HEIGHT))
 
     def autoPlaceShips(self):
+        # Add missing logic here
         self.startGameplay()
         return
 
@@ -200,11 +202,11 @@ class Gameplay:
         pygame.display.set_caption("Gameplay")
         self.font = pygame.font.Font(None, 36)
 
-    def drawGrid(self, x_offset, y_offset, title):
+    def drawGrid(self, x_offset, y_offset, title, board):
         title_surface = self.font.render(title, True, BLACK)
         title_rect = title_surface.get_rect(center=(x_offset + self.GRID_WIDTH // 2, y_offset - 20))
         self.screen.blit(title_surface, title_rect)
-        
+
         for row in range(self.ROWS):
             for col in range(self.COLS):
                 rect = pygame.Rect(
@@ -213,7 +215,8 @@ class Gameplay:
                     self.SQUARE_SIZE,
                     self.SQUARE_SIZE,
                 )
-                pygame.draw.rect(self.screen, GRAY, rect)
+                color = BLUE if board[row][col] == 1 else GRAY
+                pygame.draw.rect(self.screen, color, rect)
                 pygame.draw.rect(self.screen, WHITE, rect, 1)
 
     def run(self):
@@ -227,10 +230,10 @@ class Gameplay:
 
             self.screen.fill(WHITE)
 
-            self.drawGrid(50, 100, "Your Board")
-            self.drawGrid(self.WIDTH - self.GRID_WIDTH - 50, 100, "Enemy Board")
+            self.drawGrid(50, 100, "Your Board", board)
+            self.drawGrid(self.WIDTH - self.GRID_WIDTH - 50, 100, "Enemy Board", [[0]*self.COLS for _ in range(self.ROWS)])
             separator_rect = pygame.Rect(
-                self.WIDTH // 2 - 10, 0, 20, self.HEIGHT
+                self.WIDTH // 2 - 10, 100, 20, self.GRID_HEIGHT
             )
             pygame.draw.rect(self.screen, GRAY, separator_rect)
 

@@ -386,19 +386,17 @@ class Gameplay:
     
     def selectionAI(self, hit_board):
         directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-        
+
         def is_valid(row, col):
             return 0 <= row < self.ROWS and 0 <= col < self.COLS and hit_board[row][col] == self.UNDISCOVERED
 
         def follow_direction(row, col, direction):
             dr, dc = direction
-            while 0 <= row < self.ROWS and 0 <= col < self.COLS:
+            while is_valid(row + dr, col + dc):
                 row += dr
                 col += dc
-                if is_valid(row, col):
+                if hit_board[row][col] == self.UNDISCOVERED:
                     return row, col
-                if hit_board[row][col] != self.DISCOVERED_HIT:
-                    break
             return None
 
         # Search for a direction to follow if there's a hit
@@ -419,12 +417,12 @@ class Gameplay:
                         if is_valid(new_row, new_col):
                             return new_row, new_col
 
-        # Fallback to random selection if no hits are found
-        while True:
-            row = random.randint(0, self.ROWS - 1)
-            col = random.randint(0, self.COLS - 1)
-            if hit_board[row][col] == self.UNDISCOVERED:
-                return row, col
+        # Fallback to random selection
+        undiscovered = [(r, c) for r in range(self.ROWS) for c in range(self.COLS) if hit_board[r][c] == self.UNDISCOVERED]
+        if undiscovered:
+            return random.choice(undiscovered)
+        
+        raise ValueError("No valid moves left. Board state might be corrupted.")
 
     def isGameOver(self):
         total_hp_enemy = sum(self.remaining_hp_enemy.values())

@@ -1,6 +1,7 @@
 import pygame
 import sys
 import os
+import random
 
 # Constants
 WHITE = (255, 255, 255)
@@ -24,6 +25,26 @@ class WelcomeScreen:
         os.environ['SDL_VIDEO_CENTERED'] = '1'
         self.font = pygame.font.Font(None, 36)
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+
+    @staticmethod
+    def canPlaceShip(board, row, col, length, horizontal):
+        if horizontal:
+            if col + length > COLS:
+                return False
+            return all(board[row][col + i] == 0 for i in range(length))
+        else:
+            if row + length > ROWS:
+                return False
+            return all(board[row + i][col] == 0 for i in range(length))
+
+    @staticmethod
+    def placeShip(board, row, col, length, horizontal):
+        if horizontal:
+            for i in range(length):
+                board[row][col + i] = 1
+        else:
+            for i in range(length):
+                board[row + i][col] = 1
 
     def startGameplay(self):
         gameplay = Gameplay()
@@ -49,24 +70,6 @@ class WelcomeScreen:
         horizontal = True
         preview_pos = None
 
-        def canPlaceShip(board, row, col, length, horizontal):
-            if horizontal:
-                if col + length > COLS:
-                    return False
-                return all(board[row][col + i] == 0 for i in range(length))
-            else:
-                if row + length > ROWS:
-                    return False
-                return all(board[row + i][col] == 0 for i in range(length))
-
-        def placeShip(board, row, col, length, horizontal):
-            if horizontal:
-                for i in range(length):
-                    board[row][col + i] = 1
-            else:
-                for i in range(length):
-                    board[row + i][col] = 1
-
         grid_screen = pygame.display.set_mode((GRID_WIDTH, DISPLAY_HEIGHT))
         pygame.display.set_caption("Place Ships")
 
@@ -82,8 +85,8 @@ class WelcomeScreen:
                     row, col = y // SQUARE_SIZE, x // SQUARE_SIZE
                     if y < GRID_HEIGHT:  # Ignore clicks in the text area
                         ship_name, ship_length = remaining_ships[current_ship_index]
-                        if canPlaceShip(board, row, col, ship_length, horizontal):
-                            placeShip(board, row, col, ship_length, horizontal)
+                        if self.canPlaceShip(board, row, col, ship_length, horizontal):
+                            self.placeShip(board, row, col, ship_length, horizontal)
                             current_ship_index += 1
 
                             if current_ship_index >= len(remaining_ships):
@@ -122,7 +125,7 @@ class WelcomeScreen:
             if remaining_ships and preview_pos:
                 ship_name, ship_length = remaining_ships[current_ship_index]
                 row, col = preview_pos
-                valid = canPlaceShip(board, row, col, ship_length, horizontal)
+                valid = self.canPlaceShip(board, row, col, ship_length, horizontal)
                 highlight_color = GREEN if valid else RED
 
                 for i in range(ship_length):
@@ -147,9 +150,32 @@ class WelcomeScreen:
         pygame.display.set_mode((self.WIDTH, self.HEIGHT))
 
     def autoPlaceShips(self):
-        # Add missing logic here
+        ships = {
+            "carrier": 5,
+            "battleship": 4,
+            "cruiser": 3,
+            "submarine": 3,
+            "destroyer": 2,
+        }
+        remaining_ships = list(ships.items())
+
+        while remaining_ships:
+            _, ship_length = remaining_ships.pop()
+            placed = False
+            while not placed:
+                horizontal = random.choice([True, False])
+                if horizontal:
+                    row = random.randint(0, ROWS - 1)
+                    col = random.randint(0, COLS - ship_length)
+                else:
+                    row = random.randint(0, ROWS - ship_length)
+                    col = random.randint(0, COLS - 1)
+
+                if self.canPlaceShip(board, row, col, ship_length, horizontal):
+                    self.placeShip(board, row, col, ship_length, horizontal)
+                    placed = True
+
         self.startGameplay()
-        return
 
     def drawButton(self, text, x, y, color):
         pygame.draw.rect(self.screen, color, (x, y, self.BUTTON_WIDTH, self.BUTTON_HEIGHT))
@@ -187,6 +213,7 @@ class WelcomeScreen:
                             2 * self.HEIGHT // 3 - self.BUTTON_HEIGHT // 2,
                             GRAY)
             pygame.display.flip()
+
 
 class Gameplay:
     WIDTH = 1200
@@ -238,7 +265,6 @@ class Gameplay:
             pygame.draw.rect(self.screen, GRAY, separator_rect)
 
             pygame.display.flip()
-
 
 if __name__ == "__main__":
     welcome_screen = WelcomeScreen()

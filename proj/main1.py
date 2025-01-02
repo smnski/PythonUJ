@@ -6,6 +6,7 @@ import random
 # Constants
 WHITE = (255, 255, 255)
 GRAY = (200, 200, 200)
+DARK_GRAY = (169, 169, 169)
 BLACK = (0, 0, 0)
 BLUE = (0, 0, 255)
 GREEN = (0, 255, 0, 128)
@@ -243,8 +244,8 @@ class Gameplay:
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
         pygame.display.set_caption("Gameplay")
         self.font = pygame.font.Font(None, 36)
-        self.player_hit_squares = [[0 for _ in range(self.COLS)] for _ in range(self.ROWS)]
-        self.enemy_hit_squares = [[0 for _ in range(self.COLS)] for _ in range(self.ROWS)]
+        self.player_hit_board = [[0 for _ in range(self.COLS)] for _ in range(self.ROWS)]
+        self.enemy_hit_board = [[0 for _ in range(self.COLS)] for _ in range(self.ROWS)]
         self.remaining_hp_player = {
             "carrier": 5,
             "battleship": 4,
@@ -260,7 +261,7 @@ class Gameplay:
             "destroyer": 2,
         }
 
-    def drawGrid(self, x_offset, y_offset, title, board, highlight_pos=None, hit_board=None):
+    def drawGrid(self, x_offset, y_offset, title, hit_board, highlight_pos=None):
         title_surface = self.font.render(title, True, BLACK)
         title_rect = title_surface.get_rect(center=(x_offset + self.GRID_WIDTH // 2, y_offset - 20))
         self.screen.blit(title_surface, title_rect)
@@ -273,14 +274,14 @@ class Gameplay:
                     self.SQUARE_SIZE,
                     self.SQUARE_SIZE,
                 )
-                if board[row][col] != 0 and hit_board is None:
-                    color = BLUE  # A ship is present
-                elif hit_board and hit_board[row][col] == self.DISCOVERED_HIT:
-                    color = RED  # Hit
-                elif hit_board and hit_board[row][col] == self.DISCOVERED_MISS:
-                    color = GRAY  # Miss
-                else:
-                    color = GRAY  # Default
+                if hit_board[row][col] == self.UNDISCOVERED:
+                    color = GRAY
+                elif hit_board[row][col] == self.DISCOVERED_MISS:
+                    color = BLACK
+                elif hit_board[row][col] == self.DISCOVERED_HIT:
+                    color = BLUE
+                elif hit_board[row][col] == self.SUNK:
+                    color = RED
 
                 pygame.draw.rect(self.screen, color, rect)
                 pygame.draw.rect(self.screen, WHITE, rect, 1)
@@ -288,57 +289,58 @@ class Gameplay:
                 if highlight_pos == (row, col):
                     pygame.draw.rect(self.screen, GREEN, rect, 3)
 
-    def markRemainingSunkSquares(self, board, symbol):
+    def markRemainingSunkSquaresEnemy(self, board, symbol):
         for row in range(self.ROWS):
             for col in range(self.COLS):
                 if board[row][col] == symbol:
-                    self.enemy_hit_squares[row][col] = self.SUNK
+                    self.enemy_hit_board[row][col] = self.SUNK
+                    print(row, col)
 
     def handleClickOnEnemyGrid(self, x, y, x_offset, y_offset):
         col = (x - x_offset) // self.SQUARE_SIZE
         row = (y - y_offset) // self.SQUARE_SIZE
 
         if 0 <= row < self.ROWS and 0 <= col < self.COLS:
-            if self.enemy_hit_squares[row][col] == 0:
+            if self.enemy_hit_board[row][col] == 0:
                 if enemy_board[row][col] == 0:
-                    self.enemy_hit_squares[row][col] = self.DISCOVERED_MISS
+                    self.enemy_hit_board[row][col] = self.DISCOVERED_MISS
                 else:
                     ship_type = enemy_board[row][col]
                     if ship_type == "c":
-                        self.remaining_hp_enemy["carrier"] = self.remaining_hp_enemy["carrier"] - 1
-                        if self.remaining_hp_enemy["carrier"] - 1 > 0:
-                            self.enemy_hit_squares[row][col] = self.DISCOVERED_HIT
+                        self.remaining_hp_enemy["carrier"] -= 1
+                        if self.remaining_hp_enemy["carrier"] <= 0:
+                            self.enemy_hit_board[row][col] = self.SUNK
+                            self.markRemainingSunkSquaresEnemy(enemy_board, "c")
                         else:
-                            self.enemy_hit_squares[row][col] = self.SUNK
-                            self.markRemainingSunkSquares(self.enemy_hit_squares, "c")
+                            self.enemy_hit_board[row][col] = self.DISCOVERED_HIT
                     elif ship_type == "b":
-                        self.remaining_hp_enemy["battleship"] = self.remaining_hp_enemy["battleship"] - 1
-                        if self.remaining_hp_enemy["battleship"] - 1 > 0:
-                            self.enemy_hit_squares[row][col] = self.DISCOVERED_HIT
+                        self.remaining_hp_enemy["battleship"] -= 1
+                        print(self.remaining_hp_enemy["battleship"])
+                        if self.remaining_hp_enemy["battleship"] > 0:
+                            self.enemy_hit_board[row][col] = self.DISCOVERED_HIT
                         else:
-                            self.enemy_hit_squares[row][col] = self.SUNK
-                            self.markRemainingSunkSquares(self.enemy_hit_squares, "b")
+                            self.markRemainingSunkSquaresEnemy(enemy_board, "b")
                     elif ship_type == "r":
-                        self.remaining_hp_enemy["cruiser"] = self.remaining_hp_enemy["cruiser"] - 1
-                        if self.remaining_hp_enemy["cruiser"] - 1 > 0:
-                            self.enemy_hit_squares[row][col] = self.DISCOVERED_HIT
+                        self.remaining_hp_enemy["cruiser"] -= 1
+                        print(self.remaining_hp_enemy["cruiser"])
+                        if self.remaining_hp_enemy["cruiser"] > 0:
+                            self.enemy_hit_board[row][col] = self.DISCOVERED_HIT
                         else:
-                            self.enemy_hit_squares[row][col] = self.SUNK
-                            self.markRemainingSunkSquares(self.enemy_hit_squares, "r")
+                            self.markRemainingSunkSquaresEnemy(enemy_board, "r")
                     elif ship_type == "s":
-                        self.remaining_hp_enemy["submarine"] = self.remaining_hp_enemy["submarine"] - 1
-                        if self.remaining_hp_enemy["submarine"] - 1 > 0:
-                            self.enemy_hit_squares[row][col] = self.DISCOVERED_HIT
+                        self.remaining_hp_enemy["submarine"] -= 1
+                        print(self.remaining_hp_enemy["submarine"])
+                        if self.remaining_hp_enemy["submarine"] > 0:
+                            self.enemy_hit_board[row][col] = self.DISCOVERED_HIT
                         else:
-                            self.enemy_hit_squares[row][col] = self.SUNK
-                            self.markRemainingSunkSquares(self.enemy_hit_squares, "s")
+                            self.markRemainingSunkSquaresEnemy(enemy_board, "s")
                     elif ship_type == "d":
-                        self.remaining_hp_enemy["destroyer"] = self.remaining_hp_enemy["destroyer"] - 1
-                        if self.remaining_hp_enemy["destroyer"] - 1 > 0:
-                            self.enemy_hit_squares[row][col] = self.DISCOVERED_HIT
+                        self.remaining_hp_enemy["destroyer"] -= 1
+                        print(self.remaining_hp_enemy["destroyer"])
+                        if self.remaining_hp_enemy["destroyer"] > 0:
+                            self.enemy_hit_board[row][col] = self.DISCOVERED_HIT
                         else:
-                            self.enemy_hit_squares[row][col] = self.SUNK
-                            self.markRemainingSunkSquares(self.enemy_hit_squares, "d")
+                            self.markRemainingSunkSquaresEnemy(enemy_board, "d")
 
     def run(self):
         running = True
@@ -374,8 +376,8 @@ class Gameplay:
 
             self.screen.fill(WHITE)
 
-            self.drawGrid(50, 100, "Your Board", player_board)
-            self.drawGrid(enemy_grid_x_offset, enemy_grid_y_offset, "Enemy Board", [[0]*self.COLS for _ in range(self.ROWS)], highlight_pos, self.enemy_hit_squares)
+            self.drawGrid(50, 100, "Your Board", self.player_hit_board)
+            self.drawGrid(enemy_grid_x_offset, enemy_grid_y_offset, "Enemy Board", self.enemy_hit_board, highlight_pos)
 
             pygame.display.flip()
 

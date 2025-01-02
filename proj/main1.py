@@ -12,7 +12,8 @@ GREEN = (0, 255, 0, 128)
 RED = (255, 0, 0, 128)
 
 COLS = ROWS = 10
-player_board = enemy_board = [[0 for _ in range(COLS)] for _ in range(ROWS)]
+player_board = [[0 for _ in range(COLS)] for _ in range(ROWS)]
+enemy_board = [[0 for _ in range(COLS)] for _ in range(ROWS)]
 
 class WelcomeScreen:
     WIDTH = 800
@@ -225,7 +226,6 @@ class WelcomeScreen:
                             GRAY)
             pygame.display.flip()
 
-
 class Gameplay:
     WIDTH = 1200
     HEIGHT = 700
@@ -239,8 +239,9 @@ class Gameplay:
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
         pygame.display.set_caption("Gameplay")
         self.font = pygame.font.Font(None, 36)
+        self.hits_on_enemy_board = [[0 for _ in range(self.COLS)] for _ in range(self.ROWS)]
 
-    def drawGrid(self, x_offset, y_offset, title, board):
+    def drawGrid(self, x_offset, y_offset, title, board, highlight_pos=None, hit_board=None):
         title_surface = self.font.render(title, True, BLACK)
         title_rect = title_surface.get_rect(center=(x_offset + self.GRID_WIDTH // 2, y_offset - 20))
         self.screen.blit(title_surface, title_rect)
@@ -253,13 +254,36 @@ class Gameplay:
                     self.SQUARE_SIZE,
                     self.SQUARE_SIZE,
                 )
-                color = BLUE if board[row][col] == 1 else GRAY
+                if board[row][col] == 1:
+                    color = BLUE  # A ship is present
+                elif hit_board and hit_board[row][col] == 1:
+                    color = RED  # Hit
+                else:
+                    color = GRAY  # Default
+
                 pygame.draw.rect(self.screen, color, rect)
                 pygame.draw.rect(self.screen, WHITE, rect, 1)
+
+                if highlight_pos == (row, col):
+                    pygame.draw.rect(self.screen, GREEN, rect, 3)
+
+    def handleClickOnEnemyGrid(self, x, y, x_offset, y_offset):
+        col = (x - x_offset) // self.SQUARE_SIZE
+        row = (y - y_offset) // self.SQUARE_SIZE
+
+        if 0 <= row < self.ROWS and 0 <= col < self.COLS:
+            if self.hits_on_enemy_board[row][col] == 0:
+                self.hits_on_enemy_board[row][col] = 1 
+
+        print(self.hits_on_enemy_board)
 
     def run(self):
         running = True
         player_turn = True
+
+        enemy_grid_x_offset = self.WIDTH - self.GRID_WIDTH - 50
+        enemy_grid_y_offset = 100
+        highlight_pos = None
 
         while running:
             for event in pygame.event.get():
@@ -267,16 +291,34 @@ class Gameplay:
                     pygame.quit()
                     sys.exit()
 
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    x, y = event.pos
+                    if enemy_grid_x_offset <= x < enemy_grid_x_offset + self.GRID_WIDTH and \
+                            enemy_grid_y_offset <= y < enemy_grid_y_offset + self.GRID_HEIGHT:
+                        self.handleClickOnEnemyGrid(x, y, enemy_grid_x_offset, enemy_grid_y_offset)
+
+                if event.type == pygame.MOUSEMOTION:
+                    x, y = event.pos
+                    if enemy_grid_x_offset <= x < enemy_grid_x_offset + self.GRID_WIDTH and \
+                            enemy_grid_y_offset <= y < enemy_grid_y_offset + self.GRID_HEIGHT:
+                        col = (x - enemy_grid_x_offset) // self.SQUARE_SIZE
+                        row = (y - enemy_grid_y_offset) // self.SQUARE_SIZE
+                        highlight_pos = (row, col)
+                    else:
+                        highlight_pos = None
+
             self.screen.fill(WHITE)
 
             self.drawGrid(50, 100, "Your Board", player_board)
-            self.drawGrid(self.WIDTH - self.GRID_WIDTH - 50, 100, "Enemy Board", [[0]*self.COLS for _ in range(self.ROWS)])
+            self.drawGrid(enemy_grid_x_offset, enemy_grid_y_offset, "Enemy Board", [[0]*self.COLS for _ in range(self.ROWS)], highlight_pos, self.hits_on_enemy_board)
+
             separator_rect = pygame.Rect(
                 self.WIDTH // 2 - 10, 100, 20, self.GRID_HEIGHT
             )
             pygame.draw.rect(self.screen, GRAY, separator_rect)
 
             pygame.display.flip()
+
 
 if __name__ == "__main__":
     welcome_screen = WelcomeScreen()

@@ -415,10 +415,9 @@ class Gameplay:
         return total_hp_enemy <= 0 or total_hp_player <= 0
 
     def handleGameOver(self):
-        pygame.quit()  # Close the current game window
+        pygame.quit()
         winner = "Player" if sum(self.remaining_hp_enemy.values()) == 0 else "Enemy"
 
-        # Open a new window to display the winner
         pygame.init()
         winner_screen = pygame.display.set_mode((400, 200))
         pygame.display.set_caption("Game Over")
@@ -453,6 +452,7 @@ class Gameplay:
                     pygame.quit()
                     sys.exit()
 
+                # Clicking on enemy grid
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     x, y = event.pos
                     if enemy_grid_x_offset <= x < enemy_grid_x_offset + self.GRID_WIDTH and \
@@ -464,7 +464,7 @@ class Gameplay:
                     self.handleHit(row, col, player_board, self.player_hit_board, self.remaining_hp_player)
                     player_turn = True
 
-                # Tracking mouse position and highlighting squares that are hovered over
+                # Tracking mouse position and highlighting target
                 if event.type == pygame.MOUSEMOTION:
                     x, y = event.pos
                     if enemy_grid_x_offset <= x < enemy_grid_x_offset + self.GRID_WIDTH and \
@@ -476,10 +476,8 @@ class Gameplay:
                         highlight_pos = None
 
             self.screen.fill(WHITE)
-
             self.drawPlayerGrid(50, 100, "Your Board", self.player_hit_board)
             self.drawEnemyGrid(enemy_grid_x_offset, enemy_grid_y_offset, "Enemy Board", self.enemy_hit_board, highlight_pos)
-
             pygame.display.flip()
 
 if __name__ == "__main__":

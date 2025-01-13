@@ -97,7 +97,7 @@ class WelcomeScreen:
         ROWS, COLS = 10, 10
         SQUARE_SIZE = GRID_WIDTH // COLS
 
-        ships_rem = list(self.ships.items())
+        ships_left = list(self.ships.items())
         ship_id = 0
         horiz = True
         preview_pos = None
@@ -105,7 +105,7 @@ class WelcomeScreen:
         grid_screen = pygame.display.set_mode((GRID_WIDTH, DISPLAY_HEIGHT))
         pygame.display.set_caption("Place Ships")
 
-        while ships_rem:
+        while ships_left:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -118,7 +118,7 @@ class WelcomeScreen:
                     if y >= GRID_HEIGHT:  # Ignore clicks in the text area
                         return
                     
-                    ship_name, ship_data = ships_rem[ship_id]
+                    ship_name, ship_data = ships_left[ship_id]
                     char = ship_data["symbol"]
                     ship_len = ship_data["size"]
                     if self.canPlace(p_board, row, col, ship_len,horiz):
@@ -126,8 +126,8 @@ class WelcomeScreen:
                         ship_id += 1
 
                         # Remove placed ship from the list
-                        if ship_id >= len(ships_rem):
-                            ships_rem.clear()
+                        if ship_id >= len(ships_left):
+                            ships_left.clear()
 
                 # Rotate ships with "r" key
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
@@ -158,12 +158,12 @@ class WelcomeScreen:
                         WHITE,
                         (col * SQUARE_SIZE,
                          row * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE),
-                        1
+                         1
                     )
 
             # Draw the ship preview
-            if ships_rem and preview_pos:
-                ship_name, ship_data = ships_rem[ship_id]
+            if ships_left and preview_pos:
+                ship_name, ship_data = ships_left[ship_id]
                 ship_len = ship_data["size"]
                 row, col = preview_pos
                 valid = self.canPlace(p_board, row, col, ship_len, horiz)
@@ -182,8 +182,8 @@ class WelcomeScreen:
                         pygame.draw.rect(grid_screen, highlight_color, rect)
 
             # Draw info text
-            if ships_rem:
-                ship_name, ship_data = ships_rem[ship_id]
+            if ships_left:
+                ship_name, ship_data = ships_left[ship_id]
                 ship_len = ship_data["size"]
                 placing_text = self.font.render(
                     f"Placing:{ship_name} ({ship_len})", True, BLACK)

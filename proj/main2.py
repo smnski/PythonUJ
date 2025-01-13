@@ -429,19 +429,18 @@ class Gameplay:
 
             pygame.display.flip()
 
-
     def handleGameTurn(self, x, y, enemy_grid_x_offset, enemy_grid_y_offset):
-        # Player hit
-        self.handleClickOnEnemyGrid(x, y, enemy_grid_x_offset, enemy_grid_y_offset)
+        # Player tries to take a turn
+        valid_move = self.handleClickOnEnemyGrid(x, y, enemy_grid_x_offset, enemy_grid_y_offset)
+        if not valid_move:
+            return
 
-        # Enemy hit
+        # If player turn valid, enemy moves
         row, col = self.selectionAI(self.player_hit_board)
         self.handleHit(row, col, player_board, self.player_hit_board, self.remaining_hp_player)
 
-
     def run(self):
         running = True
-        player_turn = True
 
         enemy_grid_x_offset = self.WIDTH - self.GRID_WIDTH - 50
         enemy_grid_y_offset = 100

@@ -334,11 +334,23 @@ class Gameplay:
                 if highlight_pos == (row, col):
                     pygame.draw.rect(self.screen, GREEN, rect, 3)
 
+    def markSurroundingAsDiscoveredMiss(self, hit_board, board, row, col):
+        directions = [(-1, -1), (-1, 0), (-1, 1),
+                    (0, -1),          (0, 1),
+                    (1, -1), (1, 0), (1, 1)]
+
+        for dr, dc in directions:
+            r, c = row + dr, col + dc
+            if 0 <= r < self.ROWS and 0 <= c < self.COLS:
+                if hit_board[r][c] == self.UNDISCOVERED and board[r][c] == 0:
+                    hit_board[r][c] = self.DISCOVERED_MISS
+
     def markRemainingSunkSquares(self, board, hit_board, symbol):
         for row in range(self.ROWS):
             for col in range(self.COLS):
                 if board[row][col] == symbol:
                     hit_board[row][col] = self.SUNK
+                    self.markSurroundingAsDiscoveredMiss(hit_board, board, row, col)
 
     def handleClickOnEnemyGrid(self, x, y, x_offset, y_offset):
         col = (x - x_offset) // self.SQUARE_SIZE

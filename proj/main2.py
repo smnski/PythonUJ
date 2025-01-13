@@ -71,7 +71,7 @@ class WelcomeScreen:
             for i in range(length):
                 board[row + i][col] = symbol
 
-        def mark_adjacent(row, col):
+        def markAdjacent(row, col):
             for r in range(row - 1, row + 2):
                 for c in range(col - 1, col + 2):
                     if 0 <= r < len(board) and 0 <= c < len(board[0]) and board[r][c] != symbol:
@@ -79,10 +79,10 @@ class WelcomeScreen:
 
         if horizontal:
             for i in range(length):
-                mark_adjacent(row, col + i)
+                markAdjacent(row, col + i)
         else:
             for i in range(length):
-                mark_adjacent(row + i, col)
+                markAdjacent(row + i, col)
 
     @staticmethod
     def clearUnableToPlaceMarkers(board, row, col):
@@ -90,7 +90,6 @@ class WelcomeScreen:
             for c in range (col):
                 if board[r][c] == "x":
                     board[r][c] = 0
-
 
     def placeShipsYourself(self):
         GRID_WIDTH, GRID_HEIGHT = 500, 500

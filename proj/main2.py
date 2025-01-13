@@ -399,28 +399,36 @@ class Gameplay:
         return total_hp_enemy <= 0 or total_hp_player <= 0
 
     def handleGameOver(self):
-        pygame.quit()
         winner = "Player" if sum(self.remaining_hp_enemy.values()) == 0 else "Enemy"
 
-        pygame.init()
-        winner_screen = pygame.display.set_mode((400, 200))
-        pygame.display.set_caption("Game Over")
-        font = pygame.font.Font(None, 36)
-        text_surface = font.render(f"{winner} Wins!", True, BLACK)
-        text_rect = text_surface.get_rect(center=(200, 100))
-        
-        running = True
-        while running:
-            winner_screen.fill(WHITE)
-            winner_screen.blit(text_surface, text_rect)
+        # Display the winner modal
+        modal_running = True
+        modal_width, modal_height = 400, 200
+        modal_x = (self.WIDTH - modal_width) // 2
+        modal_y = (self.HEIGHT - modal_height) // 2
+
+        while modal_running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT or (event.type == pygame.MOUSEBUTTONDOWN and modal_x <= event.pos[0] <= modal_x + modal_width and modal_y <= event.pos[1] <= modal_y + modal_height):
+                    modal_running = False
+                    pygame.quit()
+                    sys.exit()
+
+            # Redraw the game board
+            self.screen.fill(WHITE)
+            self.drawPlayerGrid(50, 100, "Your Board", self.player_hit_board)
+            self.drawEnemyGrid(self.WIDTH - self.GRID_WIDTH - 50, 100, "Enemy Board", self.enemy_hit_board)
+
+            # Draw the modal
+            pygame.draw.rect(self.screen, WHITE, (modal_x, modal_y, modal_width, modal_height))
+            pygame.draw.rect(self.screen, BLACK, (modal_x, modal_y, modal_width, modal_height), 2)
+            font = pygame.font.Font(None, 36)
+            text_surface = font.render(f"{winner} Wins!", True, BLACK)
+            text_rect = text_surface.get_rect(center=(modal_x + modal_width // 2, modal_y + modal_height // 2))
+            self.screen.blit(text_surface, text_rect)
+
             pygame.display.flip()
 
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-
-        pygame.quit()
-        sys.exit()
 
     def handleGameTurn(self, x, y, enemy_grid_x_offset, enemy_grid_y_offset):
         # Player hit

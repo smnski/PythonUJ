@@ -14,8 +14,8 @@ RED = (255, 0, 0, 128)
 DARK_GREEN = (1, 50, 32)
 
 COLS = ROWS = 10
-player_board = [[0 for _ in range(COLS)] for _ in range(ROWS)]
-enemy_board = [[0 for _ in range(COLS)] for _ in range(ROWS)]
+p_board = [[0 for _ in range(COLS)] for _ in range(ROWS)]
+e_board = [[0 for _ in range(COLS)] for _ in range(ROWS)]
 
 class WelcomeScreen:
     WIDTH = 800
@@ -37,15 +37,15 @@ class WelcomeScreen:
         }
 
     def startGame(self, auto_place=False):
-        self.autoPlaceShips(enemy_board)
+        self.autoPlaceShips(e_board)
 
         if auto_place:
-            self.autoPlaceShips(player_board)
+            self.autoPlaceShips(p_board)
         else:
             self.placeShipsYourself()
 
-        self.clearUnableToPlaceMarkers(player_board, ROWS, COLS)
-        self.clearUnableToPlaceMarkers(enemy_board, ROWS, COLS)
+        self.clearUnableToPlaceMarkers(p_board, ROWS, COLS)
+        self.clearUnableToPlaceMarkers(e_board, ROWS, COLS)
         gameplay = Gameplay()
         gameplay.run()
 
@@ -98,7 +98,7 @@ class WelcomeScreen:
         SQUARE_SIZE = GRID_WIDTH // COLS
 
         remaining_ships = list(self.ships.items())
-        current_ship_index = 0
+        ship_id = 0
         horizontal = True
         preview_pos = None
 
@@ -115,17 +115,19 @@ class WelcomeScreen:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     x, y = event.pos
                     row, col = y // SQUARE_SIZE, x // SQUARE_SIZE
-                    if y < GRID_HEIGHT:  # Ignore clicks in the text area
-                        ship_name, ship_data = remaining_ships[current_ship_index]
-                        ship_symbol = ship_data["symbol"]
-                        ship_length = ship_data["size"]
-                        if self.canPlaceShip(player_board, row, col, ship_length, horizontal):
-                            self.placeShip(player_board, row, col, ship_length, horizontal, ship_symbol)
-                            current_ship_index += 1
+                    if y >= GRID_HEIGHT:  # Ignore clicks in the text area
+                        return
+                    
+                    ship_name, ship_data = remaining_ships[ship_id]
+                    ship_char = ship_data["symbol"]
+                    ship_len = ship_data["size"]
+                    if self.canPlaceShip(p_board, row, col, ship_len, horizontal):
+                        self.placeShip(p_board, row, col, ship_len, horizontal, ship_char)
+                        ship_id += 1
 
-                            # Remove placed ship from the list
-                            if current_ship_index >= len(remaining_ships):
-                                remaining_ships.clear()
+                        # Remove placed ship from the list
+                        if ship_id >= len(remaining_ships):
+                            remaining_ships.clear()
 
                 # Rotate ships with "r" key
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
@@ -142,7 +144,7 @@ class WelcomeScreen:
             # Draw grid for placing ships
             for row in range(ROWS):
                 for col in range(COLS):
-                    ship_here = (player_board[row][col] != 0 and player_board[row][col] != "x")
+                    ship_here = (p_board[row][col] != 0 and p_board[row][col] != "x")
                     color = BLUE if ship_here else GRAY
                     pygame.draw.rect(
                         grid_screen,
@@ -158,13 +160,13 @@ class WelcomeScreen:
 
             # Draw the ship preview
             if remaining_ships and preview_pos:
-                ship_name, ship_data = remaining_ships[current_ship_index]
-                ship_length = ship_data["size"]
+                ship_name, ship_data = remaining_ships[ship_id]
+                ship_len = ship_data["size"]
                 row, col = preview_pos
-                valid = self.canPlaceShip(player_board, row, col, ship_length, horizontal)
+                valid = self.canPlaceShip(p_board, row, col, ship_len, horizontal)
                 highlight_color = GREEN if valid else RED
 
-                for i in range(ship_length):
+                for i in range(ship_len):
                     if horizontal:
                         rect = ((col + i) * SQUARE_SIZE, row * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
                     else:
@@ -174,9 +176,9 @@ class WelcomeScreen:
 
             # Draw info text
             if remaining_ships:
-                ship_name, ship_data = remaining_ships[current_ship_index]
-                ship_length = ship_data["size"]
-                placing_text = self.font.render(f"Placing: {ship_name} ({ship_length})", True, BLACK)
+                ship_name, ship_data = remaining_ships[ship_id]
+                ship_len = ship_data["size"]
+                placing_text = self.font.render(f"Placing: {ship_name} ({ship_len})", True, BLACK)
                 rotate_text = self.font.render("Press R to rotate", True, BLACK)
 
                 grid_screen.blit(placing_text, (GRID_WIDTH // 2 - placing_text.get_width() // 2, GRID_HEIGHT + 5))
@@ -286,7 +288,7 @@ class Gameplay:
                 )
 
                 # Game basic grid
-                ship_here = (player_board[row][col] != 0 and player_board[row][col] != "x")
+                ship_here = (p_board[row][col] != 0 and p_board[row][col] != "x")
                 if ship_here:
                     color = DARK_GREEN
                 else:
@@ -360,7 +362,7 @@ class Gameplay:
         if out_of_bounds or already_discovered:
             return False
 
-        return self.handleHit(row, col, enemy_board, self.enemy_hit_board, self.remaining_hp_enemy)
+        return self.handleHit(row, col, e_board, self.enemy_hit_board, self.remaining_hp_enemy)
 
     def handleHit(self, row, col, board, hit_board, remaining_hp):
         def handleShipHit(name, symbol):
@@ -474,7 +476,7 @@ class Gameplay:
 
         # If player turn valid, enemy moves
         row, col = self.selectionAI(self.player_hit_board)
-        self.handleHit(row, col, player_board, self.player_hit_board, self.remaining_hp_player)
+        self.handleHit(row, col, p_board, self.player_hit_board, self.remaining_hp_player)
 
     def run(self):
         running = True

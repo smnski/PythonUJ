@@ -40,9 +40,13 @@ class WelcomeScreen:
         if auto_place:
             self.autoPlaceShips(enemy_board)
             self.autoPlaceShips(player_board)
+            self.clearUnableToPlaceMarkers(player_board, ROWS, COLS)
+            self.clearUnableToPlaceMarkers(enemy_board, ROWS, COLS)
         else:
             self.autoPlaceShips(enemy_board)
             self.placeShipsYourself()
+            self.clearUnableToPlaceMarkers(player_board, ROWS, COLS)
+            self.clearUnableToPlaceMarkers(enemy_board, ROWS, COLS)
 
         gameplay = Gameplay()
         gameplay.run()
@@ -66,6 +70,27 @@ class WelcomeScreen:
         else:
             for i in range(length):
                 board[row + i][col] = symbol
+
+        def mark_adjacent(row, col):
+            for r in range(row - 1, row + 2):
+                for c in range(col - 1, col + 2):
+                    if 0 <= r < len(board) and 0 <= c < len(board[0]) and board[r][c] != symbol:
+                        board[r][c] = "x"
+
+        if horizontal:
+            for i in range(length):
+                mark_adjacent(row, col + i)
+        else:
+            for i in range(length):
+                mark_adjacent(row + i, col)
+
+    @staticmethod
+    def clearUnableToPlaceMarkers(board, row, col):
+        for r in range (row):
+            for c in range (col):
+                if board[r][c] == "x":
+                    board[r][c] = 0
+
 
     def placeShipsYourself(self):
         GRID_WIDTH, GRID_HEIGHT = 500, 500
@@ -119,7 +144,8 @@ class WelcomeScreen:
             # Draw grid for placing ships
             for row in range(ROWS):
                 for col in range(COLS):
-                    color = BLUE if player_board[row][col] != 0 else GRAY
+                    ship_here = (player_board[row][col] != 0 and player_board[row][col] != "x")
+                    color = BLUE if ship_here else GRAY
                     pygame.draw.rect(
                         grid_screen,
                         color,
@@ -262,7 +288,8 @@ class Gameplay:
                 )
 
                 # Game basic grid
-                if player_board[row][col] != 0:
+                ship_here = (player_board[row][col] != 0 and player_board[row][col] != "x")
+                if ship_here:
                     color = DARK_GREEN
                 else:
                     color = GRAY

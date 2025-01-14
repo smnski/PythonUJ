@@ -137,7 +137,12 @@ class WelcomeScreen:
                 if event.type == pygame.MOUSEMOTION:
                     x, y = event.pos
                     row, col = y // SQUARE_SIZE, x // SQUARE_SIZE
-                    preview_pos = (row, col)
+
+                    # Ensure the calculated row and col are within bounds
+                    if 0 <= row < ROWS and 0 <= col < COLS:
+                        preview_pos = (row, col)
+                    else:
+                        preview_pos = None  # Clear preview if out of bounds
 
             grid_screen.fill(WHITE)
 

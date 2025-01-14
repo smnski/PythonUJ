@@ -16,4 +16,23 @@ Po własnoręcznym ustawieniu statków na swojej planszy, bądź zrobieniem tego
 `startGame()` - Wywołuje odpowiednie funkcje do ustawienia statków, a następnie rozpoczyna rozgrywkę, poprzez przejście do klasy `Gameplay`.
 
 ## Klasa Gameplay
-Lorem ipsum
+`drawPlayerGrid()` - x.  
+
+`drawEnemyGrid()` - x.  
+
+`handleClickOnEnemyGrid()` - x.  
+
+`selectionAI()` - x.  
+
+`handleGameTurn()` - x.  
+
+`run()` - x.
+
+# Instalacja i uruchomienie
+x.
+
+## Sterowanie
+x.
+
+# Autor
+Szymon Urbański, autor projektu stworzonego na potrzeby kursu języka Python, realizowanego na piątym semestrze Informatyki Stosowanej na Uniwersytecie Jagiellońskim.

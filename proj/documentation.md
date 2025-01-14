@@ -38,7 +38,7 @@ Po własnoręcznym ustawieniu statków na swojej planszy, bądź zrobieniem tego
 Aby ustawić statek, należy kliknąć na wybrane pole. Statki nie mogą ze sobą sąsiadować, ani na siebie nachodzić.
 Przyciskiem `R` zmieniamy ułożenie statku między pionowym, a poziomym.
 
-#### Oddawanie strzałów na planszę przeciwnika
+#### Oddawanie strzału na planszę przeciwnika
 Aby oddać strzał na wybrane pole przeciwnika, należy kliknąć na nie myszką. Oddawać strzały możemy jedynie na nieodkryte pola.
 
 # Oznaczenia kolorów na planszy

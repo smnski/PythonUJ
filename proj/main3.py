@@ -138,11 +138,10 @@ class WelcomeScreen:
                     x, y = event.pos
                     row, col = y // SQUARE_SIZE, x // SQUARE_SIZE
 
-                    # Ensure the calculated row and col are within bounds
                     if 0 <= row < ROWS and 0 <= col < COLS:
                         preview_pos = (row, col)
                     else:
-                        preview_pos = None  # Clear preview if out of bounds
+                        preview_pos = None 
 
             grid_screen.fill(WHITE)
 

@@ -11,7 +11,7 @@ Po własnoręcznym ustawieniu statków na swojej planszy, bądź zrobieniem tego
 
 `canPlace()`, `place()` - Stanowią kluczowe elementy powyższych funkcji, sprawdzając czy statek można ustawić na danym polu, a następnie go tam ustawiając.  
 
-`run()` - Obsługuje wejście z myszki użytkownika, czyli wybraną opcję ustawienia statków.  
+`run()` - Obsługuje wejście z myszki użytkownika, czyli wybraną opcję ustawienia statków. W przypadku rozstawiania statków manualnie, obsługuje także wybrane przez użytkownika pole planszy i orientację ustawienia statku, kontrolowaną klawiaturą.
 
 `startGame()` - Wywołuje odpowiednie funkcje do ustawienia statków, a następnie rozpoczyna rozgrywkę, poprzez przejście do klasy `Gameplay`.
 

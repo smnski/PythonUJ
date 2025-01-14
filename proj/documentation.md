@@ -16,23 +16,33 @@ Po własnoręcznym ustawieniu statków na swojej planszy, bądź zrobieniem tego
 `startGame()` - Wywołuje odpowiednie funkcje do ustawienia statków, a następnie rozpoczyna rozgrywkę, poprzez przejście do klasy `Gameplay`.
 
 ## Klasa Gameplay
-`drawPlayerGrid()` - x.  
+`drawPlayerGrid()` - Na podstawie planszy przekazanej przez klasę `WelcomeScreen`, rysuje planszę użytkownika, wraz z rozstawionymi przez niego statkami.  
 
-`drawEnemyGrid()` - x.  
+`drawEnemyGrid()` - Na podstawie planszy przekazanej przez klasę `WelcomeScreen`, rysuje planszę przeciwnika, na której statki są ukryte.  
 
-`handleClickOnEnemyGrid()` - x.  
+`handleClickOnEnemyGrid()` - Obsługuję logikę naciśnięcia na planszę przeciwnika przez użytkownika. Sprawdza, czy wybrane zostało prawidłowe pole, a następnie ukazuje wynik oddanego strzału.  
 
-`selectionAI()` - x.  
+`selectionAI()` - W funkcji zawarta jest sztuczna inteligencja, która mierzy się z użytkownikiem. Gdy na planszy nie ma pól z odkrytym statkiem, to wybiera losowe pole. Natomiast, gdy trafiła wcześniej we fragment statku, to wpierw sprawdza otaczające go pola.  
 
-`handleGameTurn()` - x.  
+`handleGameTurn()` - Przeprowadza pojedynczą turę gry, wpierw oczekując na ruch gracza, a następnie wywołując ruch przeciwnika.  
 
-`run()` - x.
+`run()` - Obsługuje wejście z myszki użytkownika, czyli wybrane pole, na które użytkownik próbuje oddać strzał.
 
 # Instalacja i uruchomienie
-x.
+1. Pobranie, bądź sklonowanie projektu z repozytorium.
+2. Instalacja biblioteki pygame poprzez polecenie `pip install pygame`.
+3. Uruchomienie gry poleceniem `python3 main.py`.
 
 ## Sterowanie
-x.
+#### Rozstawianie statków własnoręcznie
+Aby ustawić statek, należy kliknąć na wybrane pole. Statki nie mogą ze sobą sąsiadować, ani na siebie nachodzić.
+Przyciskiem `R` zmieniamy ułożenie statku między pionowym, a poziomym.
+
+#### Oddawanie strzałów na planszę przeciwnika
+Aby oddać strzał na wybrane pole przeciwnika, należy kliknąć na nie myszką. Oddawać strzały możemy jedynie na nieodkryte pola.
+
+# Oznaczenia kolorów na planszy
+- Zielony - 
 
 # Autor
 Szymon Urbański, na potrzeby kursu języka Python, realizowanego na piątym semestrze Informatyki Stosowanej na Uniwersytecie Jagiellońskim.

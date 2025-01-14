@@ -35,4 +35,4 @@ x.
 x.
 
 # Autor
-Szymon Urbański, autor projektu stworzonego na potrzeby kursu języka Python, realizowanego na piątym semestrze Informatyki Stosowanej na Uniwersytecie Jagiellońskim.
+Szymon Urbański, na potrzeby kursu języka Python, realizowanego na piątym semestrze Informatyki Stosowanej na Uniwersytecie Jagiellońskim.

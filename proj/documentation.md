@@ -42,7 +42,24 @@ Przyciskiem `R` zmieniamy ułożenie statku między pionowym, a poziomym.
 Aby oddać strzał na wybrane pole przeciwnika, należy kliknąć na nie myszką. Oddawać strzały możemy jedynie na nieodkryte pola.
 
 # Oznaczenia kolorów na planszy
-- Zielony - 
+### W trakcie ustawiania statków
+- Szary - Puste pole.
+- Zielony - Puste pola, na które możemy ustawić wybrany statek.
+- Niebieski - Ustawiony statek.
+- Czerwony - Pola, na których nie możemy ustawić statku.
+
+### W trakcie gry
+##### Plansza gracza
+- Szary - Puste pole.
+- Ciemnoszary - Trafione pole, które okazało się puste.
+- Ciemnozielony - Pole z ustawionym statkiem.
+- Niebieski - Pole z trafionym fragmentem statku.
+- Czerwony - Pole z zatopionym statkiem.
+##### Plansza przeciwnika
+- Szary - Puste pole.
+- Ciemnoszary - Trafione pole, które okazało się puste.
+- Niebieski - Pole z trafionym fragmentem statku.
+- Czerwony - Pole z zatopionym statkiem.
 
 # Autor
 Szymon Urbański, na potrzeby kursu języka Python, realizowanego na piątym semestrze Informatyki Stosowanej na Uniwersytecie Jagiellońskim.

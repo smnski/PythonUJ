@@ -125,7 +125,7 @@ class WelcomeScreen:
                         self.place(p_board, row, col, ship_len, horiz, char)
                         ship_id += 1
 
-                        # Remove placed ship from the list
+                        # Breaking placing ships loop once all placed
                         if ship_id >= len(ships_left):
                             ships_left.clear()
 
@@ -312,8 +312,7 @@ class Gameplay:
                 )
 
                 # Game basic grid
-                ship_here = (p_board[row][col] != 0 and \
-                             p_board[row][col] != "x")
+                ship_here = (p_board[row][col] != 0)
                 if ship_here:
                     color = DARK_GREEN
                 else:
